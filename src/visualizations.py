@@ -3,12 +3,12 @@ from matplotlib.animation import FuncAnimation
 import src.solutions as solutions
 
 def visualization_1b(overall_solutions, xs):
-    fig, axs = plt.subplots(1, 3, figsize=(5.5,2.3), sharey=True)
+    fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
 
     for j in range(len(overall_solutions)):
         for k in range(len(overall_solutions[j])):
             axs[j].plot(xs, overall_solutions[j][k], linewidth=1)
-        axs[j].set_xlabel("L")
+        axs[j].set_xlabel("x")
         axs[j].set_title('i'*(j+1))
    
     axs[0].set_ylabel(r'$\Psi^n$')
@@ -38,7 +38,7 @@ def animate_1c(L, N, c, deltat):
         axs[j].plot(xs, all_soltjes[j][1]) 
         # axs[j].set_title(functions[j])
         axs[j].set_title('i'*(j+1))
-        axs[j].set_xlabel("L")
+        axs[j].set_xlabel("x")
    
     axs[0].set_ylabel(r'$\Psi$')
     
@@ -61,7 +61,7 @@ def animate_1c(L, N, c, deltat):
                 soltjes = solutions.wave_step_function(soltjes, c, xs, deltax, deltat)
             all_soltjes[i] = soltjes
             axs[i].plot(xs, soltjes[1]) 
-            axs[i].set_xlabel("L")
+            axs[i].set_xlabel("x")
    
         axs[0].set_ylabel(r'$\Psi$')
 
