@@ -69,3 +69,73 @@ def one_b_wrapper(which_one):
             overall_solutions.append(soltjes[1])
     return overall_solutions, xs
     
+# sequential jacobi iteration
+def sequential_jacobi(N, tol=1e-5):
+    """
+    Solves the Jacobi iteration using the update equation:
+        c_{i,j}^{k+1} = (1/4) * (c_{i+1,j}^{k} + c_{i-1,j}^{k} + c_{i,j+1}^{k} + c_{i,j-1}^{k})
+    """
+
+    # grid initialisation
+    c_old = np.zeros((N, N)) # N is max
+    c_next = np.copy(c_old)
+
+    # boundary conditions
+    c0 = 0.0
+    cL = 1.0
+
+    # top boundary (y=1, j = N - 1)
+    c_old[0, :] = cL  
+    c_next[0, :] = cL
+    
+    # bottom boundary (y=0, j = 0)
+    c_old[-1, :] = c0
+    c_next[-1, :] = c0
+
+    iter = 0
+    delta = float('inf')
+
+    while delta > tol:
+        delta = 0
+
+        for i in range(N):  # periodic in x
+            for j in range(1, N-1):  # fixed in y
+                
+                # add 
+                # if (c_old is a source) c_next = cL
+                # else if (c_old is a sink) c_next = c0
+
+                # periodic boundaries
+                if i == 0:
+                    west = c_old[N - 1, j]
+                else:
+                    west = c_old[i - 1, j]
+
+                if i == N - 1:
+                    east = c_old[0, j]
+                else:
+                    east = c_old[i + 1, j]
+
+                # fixed boundaries
+                south = c0 if j == 0 else c_old[i, j - 1]
+                north = cL if j == N - 1 else c_old[i, j + 1]
+
+                # Jacobi update equation
+                c_next[i, j] = 0.25 * (west + east + south + north)
+
+                delta = max(delta, abs(c_next[i, j] - c_old[i, j]))
+
+        # swap matrices for next iter
+        c_old[:], c_next[:] = c_next, c_old
+
+        iter += 1
+
+    print(f"Converged in {iter} iterations with δ = {delta:.8f}")
+
+    return c_old
+
+
+
+
+
+
