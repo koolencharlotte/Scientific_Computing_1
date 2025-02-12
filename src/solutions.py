@@ -134,6 +134,52 @@ def sequential_jacobi(N, tol, max_iters):
 
     return c_old
 
+# sequential gauss seidel
+def sequential_gauss_seidel(N, tol, max_iters):
+    """
+    Solves the Gauss-Seidel iteration using the update equation:
+        c_{i,j}^{n+1} = (1/4) * (c_{i+1,j}^{k} + c_{i-1,j}^{k+1} + c_{i,j+1}^{k} + c_{i,j-1}^{k+1})
+    """
+
+    # grid initialisation
+    c = np.zeros((N, N)) # N is max
+
+    # boundary conditions
+    c0 = 0.0
+    cL = 1.0
+
+    # top boundary (y=1, j = N - 1)
+    c[0, :] = cL  
+    
+    # bottom boundary (y=0, j = 0)
+    c[-1, :] = c0
+
+    iter = 0
+    delta = float('inf')
+
+    while delta > tol and iter < max_iters:
+        delta = 0
+
+        for i in range(N):  # periodic in x
+            for j in range(1, N-1):  # fixed in y
+
+                # periodic boundary conditions
+                west = c[i - 1, j] if i > 0 else c[N - 1, j]
+                east = c[i + 1, j] if i < N - 1 else c[0, j]
+                south = c[i, j - 1] if j > 0 else c0
+                north = c[i, j + 1] if j < N - 1 else cL
+
+                # Gauss-Seidel update equation
+                c_next = 0.25 * (west + east + south + north)
+
+                delta = max(delta, abs(c_next - c[i, j]))
+                c[i, j] = c_next
+
+        iter += 1
+
+    print(f"Converged in {iter} iterations with δ = {delta:.8f}")
+
+    return c
 
 
 
