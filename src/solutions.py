@@ -98,7 +98,7 @@ def sequential_jacobi(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N):  # periodic in x
+        for i in range(1, N-1):  # periodic in x
             for j in range(1, N-1):  # fixed in y
                 
                 # add 
@@ -160,7 +160,7 @@ def sequential_gauss_seidel(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N):  # periodic in x
+        for i in range(1, N-1):  # periodic in x
             for j in range(1, N-1):  # fixed in y
 
                 # periodic boundary conditions
