@@ -70,7 +70,7 @@ def one_b_wrapper(which_one):
     return overall_solutions, xs
     
 # sequential jacobi iteration
-def sequential_jacobi(N, tol=1e-5):
+def sequential_jacobi(N, tol, max_iters):
     """
     Solves the Jacobi iteration using the update equation:
         c_{i,j}^{k+1} = (1/4) * (c_{i+1,j}^{k} + c_{i-1,j}^{k} + c_{i,j+1}^{k} + c_{i,j-1}^{k})
@@ -95,7 +95,7 @@ def sequential_jacobi(N, tol=1e-5):
     iter = 0
     delta = float('inf')
 
-    while delta > tol:
+    while delta > tol and iter < max_iters:
         delta = 0
 
         for i in range(N):  # periodic in x
