@@ -1,73 +1,139 @@
 import numpy as np 
 
 def spat_approx_1a(deltax, solutions):
-    assert deltax != 0, "can't divide by 0 (spatial approximation)"
-    return (solutions[2] - 2*solutions[1] + solutions[0])/np.power(deltax, 2)
+    """
+    Computes the second-order spatial approximation for the wave equation.
 
-# def time_approx_1a(deltat, time, func, x):
-#     return (func(x, time+deltat) - 2*func(x, time) + func(x, time-deltat))/np.power(deltat, 2)
+    Parameters:
+    deltax (float): Spatial step size.
+    solutions (tuple): Three consecutive solution values (previous, current, next).
+
+    Returns:
+    float: Second-order finite difference approximation.
+    """
+
+    assert deltax != 0, "can't divide by 0 (spatial approximation)"
+    return (solutions[2] - 2*solutions[1] + solutions[0]) / np.power(deltax, 2)
 
 def initialize_wave(which_one, L, N):
+    """
+    Initializes the wave function with a chosen initial condition.
+
+    Parameters:
+    which_one (int): Selects the initial condition (1, 2, or 3).
+    L (float): Length of the spatial domain.
+    N (int): Number of spatial divisions.
+
+    Returns:
+    tuple: Initial wave solutions (previous, current, next), spatial points, and deltax.
+    """
+    # Functions to initialize configuration
     def b_one(x):
-        return np.sin(2*np.pi*x)
+        return np.sin(2 * np.pi * x)
 
     def b_two(x):
-        return np.sin(5*np.pi*x)
+        return np.sin(5 * np.pi * x)
 
     def b_three(x):
         if x > 1/5 and x < 2/5:
-            return np.sin(5*np.pi*x)
+            return np.sin(5 * np.pi * x)
         else:
             return 0
 
-    deltax = L/N
-    assert N>0, "Number of subparts need to be more than 0 (zero-division)"
-
+    # Spatial step size
+    assert N > 0, "Number of subparts must be greater than 0 (zero-division)"
+    deltax = L / N
     xs = np.arange(0, L, deltax)
 
-    if which_one==1:
+    # Use specified function to model initial configuration
+    if which_one == 1:
         func = b_one
-    elif which_one==2:
-        func=b_two
+    elif which_one == 2:
+        func = b_two
     elif which_one == 3: 
-        func=b_three
+        func = b_three
     else:
-        raise ValueError(f"invalid option {which_one}, choose option 1, 2 or 3 (integer form)")
-    
-    
-    #saving the solutions
+        raise ValueError(f"Invalid option {which_one}, choose 1, 2, or 3")
+
+    # Saving the solutions
     sols_prev = [func(xje) for xje in xs]
+    # This solution is the same as previous as the derivative is 0 (applying Euler's method)
     sols = sols_prev.copy()
 
+    # Next solutions are still empty
     sols_next = np.zeros(len(xs))
 
     return (sols_prev, sols, sols_next), xs, deltax
 
 def wave_step_function(all_sols, c, xs, deltax, deltat):
-    #the full function 
+    """
+    Performs one time step of the wave equation using finite differencing.
+
+    Parameters:
+    all_sols (tuple): Contains previous, current, and next solution arrays.
+    c (float): Wave speed.
+    xs (numpy array): Spatial grid points.
+    deltax (float): Spatial step size.
+    deltat (float): Time step size.
+
+    Returns:
+    tuple: Updated wave solutions (previous, current, next).
+    """
     sols_prev, sols, sols_next = all_sols
-    for j,x in enumerate(xs):
+    for j, x in enumerate(xs):
+
+        # Border conditions
         if j == 0: 
-            sols_next[j]= 0
-        elif j == len(xs)-1:
             sols_next[j] = 0
+        elif j == len(xs) - 1:
+            sols_next[j] = 0
+
+        # In case point is not a border point, update according to previous value and neighboring values
         else:
-            sols_next[j] = np.power(deltat, 2) * np.power(c, 2) * spat_approx_1a(deltax, (sols[j-1], sols[j], sols[j+1])) + 2*sols[j] - sols_prev[j]
+            sols_next[j] = np.power(deltat, 2) * np.power(c, 2) * spat_approx_1a(deltax, (sols[j-1], sols[j], sols[j+1])) + 2 * sols[j] - sols_prev[j]
+
+    # Update saved data
     sols_prev = sols.copy()
     sols = sols_next.copy()
+
+    # Return updated data
     return sols_prev, sols, sols_next
 
 def one_b_wrapper(which_one, L, N, c, deltat, iters=20000):
-    
+    """
+    Simulates wave propagation over time using numerical methods.
+
+    Parameters:
+    which_one (int): Selects the initial condition (1, 2, or 3).
+    L (float): Length of the spatial domain.
+    N (int): Number of spatial divisions.
+    c (float): Wave speed.
+    deltat (float): Time step size.
+    iters (int, optional): Number of time iterations (default: 20000).
+
+    Returns:
+    tuple: List of wave solutions at selected time steps and spatial grid points.
+    """
     overall_solutions = []
+    every_what = int(iters / 10)
+
+    # Initialize the configuration with a specified function (specified with which_one)
     soltjes, xs, deltax = initialize_wave(which_one, L, N)
     overall_solutions.append(soltjes[1])
+
+    # Iterate through specified number of iterations and save 10 evenly separated lines overall
     for i in range(iters):
+
+        # Perform a step
         soltjes = wave_step_function(soltjes, c, xs, deltax, deltat)
-        if i%2000 == 0: 
+
+        # Save data for visualization purposes
+        if i % every_what == 0: 
             overall_solutions.append(soltjes[1])
+
+    # Return solution and x-values for which these solutions are computed
     return overall_solutions, xs
-    
+
 # sequential jacobi iteration
 def sequential_jacobi(N, tol, max_iters):
     """
