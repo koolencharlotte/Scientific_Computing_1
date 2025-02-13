@@ -1,6 +1,7 @@
 import numpy as np 
 
 def spat_approx_1a(deltax, solutions):
+    assert deltax != 0, "can't divide by 0 (spatial approximation)"
     return (solutions[2] - 2*solutions[1] + solutions[0])/np.power(deltax, 2)
 
 # def time_approx_1a(deltat, time, func, x):
@@ -20,6 +21,8 @@ def initialize_wave(which_one, L, N):
             return 0
 
     deltax = L/N
+    assert N>0, "Number of subparts need to be more than 0 (zero-division)"
+
     xs = np.arange(0, L, deltax)
 
     if which_one==1:
@@ -50,22 +53,18 @@ def wave_step_function(all_sols, c, xs, deltax, deltat):
             sols_next[j] = 0
         else:
             sols_next[j] = np.power(deltat, 2) * np.power(c, 2) * spat_approx_1a(deltax, (sols[j-1], sols[j], sols[j+1])) + 2*sols[j] - sols_prev[j]
-    sols_prev = sols_next.copy()
+    sols_prev = sols.copy()
     sols = sols_next.copy()
     return sols_prev, sols, sols_next
 
-def one_b_wrapper(which_one):
-    L = 1
-    N = 100
-    c = 1
-    deltat= 0.001
+def one_b_wrapper(which_one, L, N, c, deltat, iters=20000):
+    
     overall_solutions = []
     soltjes, xs, deltax = initialize_wave(which_one, L, N)
     overall_solutions.append(soltjes[1])
-    for i in range(30000):
+    for i in range(iters):
         soltjes = wave_step_function(soltjes, c, xs, deltax, deltat)
-        # soltjes = soltjes_new[0].copy(), soltjes_new[1].copy(), soltjes_new[2].copy()
-        if i%3000 == 0: 
+        if i%2000 == 0: 
             overall_solutions.append(soltjes[1])
     return overall_solutions, xs
     

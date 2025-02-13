@@ -57,7 +57,7 @@ def animate_1c(L, N, c, deltat):
             axs[i].set_ylim(-1, 1)  # Set y-axis limits
             # axs[i].set_title(functions[i])
             axs[i].set_title('i'*(i+1))
-            for _ in range(100):
+            for _ in range(10):
                 soltjes = solutions.wave_step_function(soltjes, c, xs, deltax, deltat)
             all_soltjes[i] = soltjes
             axs[i].plot(xs, soltjes[1]) 
@@ -66,6 +66,6 @@ def animate_1c(L, N, c, deltat):
         axs[0].set_ylabel(r'$\Psi$')
 
     
-    animation = FuncAnimation(fig, animate, frames=1500, interval=1)
+    animation = FuncAnimation(fig, animate, frames=300, interval=1)
     animation.save("plots/network_animation10.gif", fps=50,  writer="ffmpeg")
     plt.show()
