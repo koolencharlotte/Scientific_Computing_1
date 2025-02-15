@@ -1,9 +1,11 @@
-import numpy as np 
+import os
+import pickle as pkl
+
+import numpy as np
+
 
 def spat_approx_1a(deltax, solutions):
     """
-    Computes the second-order spatial approximation for the wave equation.
-
     Parameters:
     deltax (float): Spatial step size.
     solutions (tuple): Three consecutive solution values (previous, current, next).
@@ -13,7 +15,8 @@ def spat_approx_1a(deltax, solutions):
     """
 
     assert deltax != 0, "can't divide by 0 (spatial approximation)"
-    return (solutions[2] - 2*solutions[1] + solutions[0]) / np.power(deltax, 2)
+    return (solutions[2] - 2 * solutions[1] + solutions[0]) / np.power(deltax, 2)
+
 
 def initialize_wave(which_one, L, N):
     """
@@ -27,6 +30,7 @@ def initialize_wave(which_one, L, N):
     Returns:
     tuple: Initial wave solutions (previous, current, next), spatial points, and deltax.
     """
+
     # Functions to initialize configuration
     def b_one(x):
         return np.sin(2 * np.pi * x)
@@ -35,7 +39,7 @@ def initialize_wave(which_one, L, N):
         return np.sin(5 * np.pi * x)
 
     def b_three(x):
-        if x > 1/5 and x < 2/5:
+        if x > 1 / 5 and x < 2 / 5:
             return np.sin(5 * np.pi * x)
         else:
             return 0
@@ -50,12 +54,14 @@ def initialize_wave(which_one, L, N):
         func = b_one
     elif which_one == 2:
         func = b_two
-    elif which_one == 3: 
+    elif which_one == 3:
         func = b_three
     else:
-        raise ValueError(f"Invalid option {which_one}, choose 1, 2, or 3")
+        raise ValueError(
+            f"invalid option {which_one}, choose option 1, 2 or 3 (integer form)"
+        )
 
-    # Saving the solutions
+    # saving the solutions
     sols_prev = [func(xje) for xje in xs]
     # This solution is the same as previous as the derivative is 0 (applying Euler's method)
     sols = sols_prev.copy()
@@ -64,6 +70,7 @@ def initialize_wave(which_one, L, N):
     sols_next = np.zeros(len(xs))
 
     return (sols_prev, sols, sols_next), xs, deltax
+
 
 def wave_step_function(all_sols, c, xs, deltax, deltat):
     """
@@ -81,16 +88,21 @@ def wave_step_function(all_sols, c, xs, deltax, deltat):
     """
     sols_prev, sols, sols_next = all_sols
     for j, x in enumerate(xs):
-
         # Border conditions
-        if j == 0: 
+        if j == 0:
             sols_next[j] = 0
         elif j == len(xs) - 1:
             sols_next[j] = 0
 
         # In case point is not a border point, update according to previous value and neighboring values
         else:
-            sols_next[j] = np.power(deltat, 2) * np.power(c, 2) * spat_approx_1a(deltax, (sols[j-1], sols[j], sols[j+1])) + 2 * sols[j] - sols_prev[j]
+            sols_next[j] = (
+                np.power(deltat, 2)
+                * np.power(c, 2)
+                * spat_approx_1a(deltax, (sols[j - 1], sols[j], sols[j + 1]))
+                + 2 * sols[j]
+                - sols_prev[j]
+            )
 
     # Update saved data
     sols_prev = sols.copy()
@@ -98,6 +110,7 @@ def wave_step_function(all_sols, c, xs, deltax, deltat):
 
     # Return updated data
     return sols_prev, sols, sols_next
+
 
 def one_b_wrapper(which_one, L, N, c, deltat, iters=20000):
     """
@@ -123,16 +136,16 @@ def one_b_wrapper(which_one, L, N, c, deltat, iters=20000):
 
     # Iterate through specified number of iterations and save 10 evenly separated lines overall
     for i in range(iters):
-
         # Perform a step
         soltjes = wave_step_function(soltjes, c, xs, deltax, deltat)
 
         # Save data for visualization purposes
-        if i % every_what == 0: 
+        if i % every_what == 0:
             overall_solutions.append(soltjes[1])
 
     # Return solution and x-values for which these solutions are computed
     return overall_solutions, xs
+
 
 # sequential jacobi iteration
 def sequential_jacobi(N, tol, max_iters):
@@ -142,7 +155,7 @@ def sequential_jacobi(N, tol, max_iters):
     """
 
     # grid initialisation
-    c_old = np.zeros((N, N)) # N is max
+    c_old = np.zeros((N, N))  # N is max
     c_next = np.copy(c_old)
 
     # boundary conditions
@@ -150,23 +163,22 @@ def sequential_jacobi(N, tol, max_iters):
     cL = 1.0
 
     # top boundary (y=1, j = N - 1)
-    c_old[0, :] = cL  
+    c_old[0, :] = cL
     c_next[0, :] = cL
-    
+
     # bottom boundary (y=0, j = 0)
     c_old[-1, :] = c0
     c_next[-1, :] = c0
 
     iter = 0
-    delta = float('inf')
+    delta = float("inf")
 
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N-1):  # periodic in x
-            for j in range(1, N-1):  # fixed in y
-                
-                # add 
+        for i in range(1, N - 1):  # periodic in x
+            for j in range(1, N - 1):  # fixed in y
+                # add
                 # if (c_old is a source) c_next = cL
                 # else if (c_old is a sink) c_next = c0
 
@@ -199,6 +211,7 @@ def sequential_jacobi(N, tol, max_iters):
 
     return c_old
 
+
 # sequential gauss seidel
 def sequential_gauss_seidel(N, tol, max_iters):
     """
@@ -207,27 +220,26 @@ def sequential_gauss_seidel(N, tol, max_iters):
     """
 
     # grid initialisation
-    c = np.zeros((N, N)) # N is max
+    c = np.zeros((N, N))  # N is max
 
     # boundary conditions
     c0 = 0.0
     cL = 1.0
 
     # top boundary (y=1, j = N - 1)
-    c[0, :] = cL  
-    
+    c[0, :] = cL
+
     # bottom boundary (y=0, j = 0)
     c[-1, :] = c0
 
     iter = 0
-    delta = float('inf')
+    delta = float("inf")
 
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N-1):  # periodic in x
-            for j in range(1, N-1):  # fixed in y
-
+        for i in range(1, N - 1):  # periodic in x
+            for j in range(1, N - 1):  # fixed in y
                 # periodic boundary conditions
                 west = c[i - 1, j] if i > 0 else c[N - 1, j]
                 east = c[i + 1, j] if i < N - 1 else c[0, j]
@@ -247,6 +259,103 @@ def sequential_gauss_seidel(N, tol, max_iters):
     return c
 
 
+def two_dimensional_step_wave_function(all_sols, c, xs, deltax, deltat):
+    pass
 
 
+def initialize_grid(N):
+    grid = np.zeros((N, N))
 
+    grid[0, :] = 0  # bottom boundary
+    grid[N - 1, :] = 1  # top boundary
+
+    return grid
+
+
+def apply_periodic_boundary(grid):
+    grid[:, 0] = grid[:, -2]
+    grid[:, -1] = grid[:, 1]
+
+
+def update(grid, num_steps, N, gamma, dt, comparison=False):
+    all_grids = [grid.copy()]
+    print(f"this is the curent working directory: {os.getcwd()}")
+    t = 0
+    times = [0]
+
+    time_appended = set()  # Define this outside the loop
+
+    key_times = {0.001, 0.01, 0.1, 1.0}
+
+    for n in range(num_steps):
+        c_new = grid.copy()
+        for i in range(1, N - 1):
+            for j in range(1, N - 1):
+                c_new[i, j] = grid[i, j] + gamma * (
+                    grid[i + 1, j]
+                    + grid[i - 1, j]
+                    + grid[i, j + 1]
+                    + grid[i, j - 1]
+                    - 4 * grid[i, j]
+                )
+
+        apply_periodic_boundary(c_new)
+
+        grid[:] = c_new[:]
+
+        t = round(t + dt, 6)
+        print(f"Step: {n}, Time: {t}")
+
+        if comparison:
+            for key_t in key_times:
+                if np.isclose(t, key_t, atol=1e-9) and t not in time_appended:
+                    all_grids.append(c_new.copy())
+                    times.append(t)
+                    time_appended.add(t)
+        else:
+            if n % 100 == 0:
+                all_grids.append(grid.copy())
+                times.append(t)
+
+    if comparison:
+        path = "data/2D_diffusion_comparison.pkl"
+    else:
+        path = "data/2D_diffusion.pkl"
+
+    pkl.dump(
+        (all_grids, times),
+        open(path, "wb"),
+    )
+
+    return all_grids, times
+
+
+def run_simulation_without_animation():
+    N = 100
+    c = initialize_grid(N)
+    L = 1.0
+    D = 1
+    all_grids = [c]
+
+    dx = L / N
+    dt = 0.25 * dx**2
+
+    T_total = 1.0
+    num_steps = T_total / dt
+
+    t = 0
+    times = [0]
+
+    gamma = (D * dt) / (dx**2)
+
+    T_total = 1.0
+    num_steps = int(T_total / dt)
+
+    if os.path.exists("Scientific_Computing_1/data/2D_diffusion.pkl"):
+        all_grids, times = pkl.load(
+            open("Scientific_Computing_1/data/2D_diffusion.pkl", "rb")
+        )
+    else:
+        all_grids, times = update(c, num_steps, N, gamma, dt)
+
+    return all_grids, times
