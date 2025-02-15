@@ -1,3 +1,6 @@
+import os
+import pickle as pkl
+
 import numpy as np
 
 
@@ -88,8 +91,9 @@ def two_dimensional_step_wave_function(all_sols, c, xs, deltax, deltat):
 
 def initialize_grid(N):
     grid = np.zeros((N, N))
-    grid[0, :] = 1
-    grid[-1, :] = 0
+
+    grid[0, :] = 0  # bottom boundary
+    grid[N - 1, :] = 1  # top boundary
 
     return grid
 
@@ -99,47 +103,85 @@ def apply_periodic_boundary(grid):
     grid[:, -1] = grid[:, 1]
 
 
-N = 1
-c = initialize_grid(N)
-L = 1.0
-D = 1
-num_steps = 5000
+def update(grid, num_steps, N, gamma, dt, comparison=False):
+    all_grids = [grid.copy()]
+    print(f"this is the curent working directory: {os.getcwd()}")
+    t = 0
+    times = [0]
 
+    time_appended = set()  # Define this outside the loop
 
-dx = L / N
-dt = 0.25 * dx**2
+    key_times = {0.001, 0.01, 0.1, 1.0}
 
-
-def update(c):
-    num_steps = 500
     for n in range(num_steps):
-        c_new = c.copy()
-
-        # Update interior points
+        c_new = grid.copy()
         for i in range(1, N - 1):
             for j in range(1, N - 1):
-                c_new[i, j] = c[i, j] + D * dt * (
-                    (c[i + 1, j] - 2 * c[i, j] + c[i - 1, j]) / dx**2
-                    + (c[i, j + 1] - 2 * c[i, j] + c[i, j - 1]) / dx**2
+                c_new[i, j] = grid[i, j] + gamma * (
+                    grid[i + 1, j]
+                    + grid[i - 1, j]
+                    + grid[i, j + 1]
+                    + grid[i, j - 1]
+                    - 4 * grid[i, j]
                 )
 
-    # Apply boundary conditions
-    c_new[N - 1, :] = 1
-    c_new[0, :] = 0
-    apply_periodic_boundary(c_new)  # Make sure of the periodic boundary conditions
+        apply_periodic_boundary(c_new)
 
-    return c_new
+        grid[:] = c_new[:]
+
+        t = round(t + dt, 6)
+        print(f"Step: {n}, Time: {t}")
+
+        if comparison:
+            for key_t in key_times:
+                if np.isclose(t, key_t, atol=1e-9) and t not in time_appended:
+                    all_grids.append(c_new.copy())
+                    times.append(t)
+                    time_appended.add(t)
+        else:
+            if n % 100 == 0:
+                all_grids.append(grid.copy())
+                times.append(t)
+
+    if comparison:
+        path = "data/2D_diffusion_comparison.pkl"
+    else:
+        path = "data/2D_diffusion.pkl"
+
+    pkl.dump(
+        (all_grids, times),
+        open(path, "wb"),
+    )
+
+    return all_grids, times
 
 
-# fig, ax = plt.subplots(figsize=(7, 7))
+def run_simulation_without_animation():
+    N = 100
+    c = initialize_grid(N)
+    L = 1.0
+    D = 1
+    all_grids = [c]
 
-# c_plot = ax.pcolormesh(c, cmap="viridis", edgecolors="k", linewidth=0.5)
+    dx = L / N
+    dt = 0.25 * dx**2
 
-# # plt.imshow(c, cmap="viridis", interpolation="nearest", origin="lower")
-# plt.colorbar(c_plot, ax=ax, label="Concentration")
-# ax.set_xticks(np.arange(N))
-# ax.set_yticks(np.arange(N))
-# ax.set_xticklabels([])
-# ax.set_yticklabels([])
-# ax.set_title("2D Diffusion")
-# plt.show()
+    T_total = 1.0
+    num_steps = T_total / dt
+
+    t = 0
+    times = [0]
+
+    gamma = (D * dt) / (dx**2)
+
+    T_total = 1.0
+    num_steps = int(T_total / dt)
+
+    if os.path.exists("Scientific_Computing_1/data/2D_diffusion.pkl"):
+        all_grids, times = pkl.load(
+            open("Scientific_Computing_1/data/2D_diffusion.pkl", "rb")
+        )
+    else:
+        all_grids, times = update(c, num_steps, N, gamma, dt)
+
+    return all_grids, times

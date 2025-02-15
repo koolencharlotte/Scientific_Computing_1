@@ -1,6 +1,13 @@
+import os
+import pickle as pkl
+from math import erfc
+
 import matplotlib.pyplot as plt
+import numpy as np
 import src.solutions as solutions
 from matplotlib.animation import FuncAnimation
+
+from .solutions import initialize_grid, update
 
 
 def visualization_1b(overall_solutions, xs):
@@ -67,21 +74,124 @@ def animate_1c(L, N, c, deltat):
     plt.show()
 
 
-def animate_2f(update_func, grid, num_steps, interval=50):
+def plot_five_states():
+    N = 100
+    c = initialize_grid(N)
+
+    L = 1.0
+    D = 1
+
+    dx = L / N
+    dt = 0.25 * dx**2
+
+    gamma = (D * dt) / (dx**2)
+
+    T_total = 1.0
+    num_steps = int(T_total / dt)
+
+    if os.path.exists("data/2D_diffusion.pkl"):
+        all_c, times = pkl.load(open("data/2D_diffusion.pkl", "rb"))
+    else:
+        all_c, times = update(c, num_steps, N, gamma, dt)
+
+    fig, axs = plt.subplots(1, 5, figsize=(20, 5))
+    fig.suptitle("2D Diffusion Simulation at t = 0, 0.001, 0.01, 0.1, 1.0")
+
+    print(all_c[3])
+
+    axs[0].imshow(all_c[0], cmap="viridis", interpolation="nearest", origin="lower")
+    axs[0].set_title(f"t = {times[0]}")
+
+    axs[1].imshow(all_c[1], cmap="viridis", interpolation="nearest", origin="lower")
+    axs[1].set_title(f"t = {times[1]}")
+
+    axs[2].imshow(all_c[2], cmap="viridis", interpolation="nearest", origin="lower")
+    axs[2].set_title(f"t = {times[2]}")
+
+    axs[3].imshow(all_c[3], cmap="viridis", interpolation="nearest", origin="lower")
+    axs[3].set_title(f"t = {times[3]}")
+
+    axs[4].imshow(all_c[4], cmap="viridis", interpolation="nearest", origin="lower")
+    axs[4].set_title(f"t = {times[4]}")
+
+    plt.show()
+
+
+def plot_simulation_without_animation(grids, N):
+    fig, ax = plt.subplots(figsize=(7, 7))
+
+    c_plot = ax.pcolormesh(grids[-1], cmap="viridis", edgecolors="k", linewidth=0.5)
+
+    # plt.imshow(c, cmap="viridis", interpolation="nearest", origin="lower")
+    plt.colorbar(c_plot, ax=ax, label="Concentration")
+    ax.set_xticks(np.arange(N))
+    ax.set_yticks(np.arange(N))
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_title("2D Diffusion")
+    plt.show()
+
+
+def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
+    path = "data/2D_diffusion_comparison.pkl"
+    if os.path.exists(path):
+        grids, times = pkl.load(open(path, "rb"))
+    else:
+        grids, times = update_func(grid, num_steps, N, gamma, dt)
+
+    print(f"Starting grid: {grid}")
+
     fig, axs = plt.subplots(figsize=(6, 6))
-    img = axs.imshow(grid, cmap="hot", interpolation="nearest", origin="lower")
+    img = axs.imshow(grids[0], cmap="viridis", interpolation="nearest", origin="lower")
     plt.colorbar(img, ax=axs, label="Concentration")
     axs.set_title("2D Diffusion Simulation")
 
-    mutable_grid = [grid]
-
     def animate(frame):
-        mutable_grid[0] = update_func(mutable_grid[0])
-        img.set_array(mutable_grid[0])
-        axs.set_title("2D Diffusion Simulation (Step: {frame})")
+        img.set_array(grids[frame])
+        axs.set_title(f"2D Diffusion Simulation (Step: {frame:.3g})")
 
     animation = FuncAnimation(
-        fig, animate, frames=num_steps, interval=interval, blit=False
+        fig, animate, frames=len(grids), interval=interval, blit=False
     )
     animation.save("plots/2D_diffusion.gif", fps=50, writer="ffmpeg")
+
+    plt.close(fig)
+    return animation
+
+
+def analytical_solution(x, t, D=1, i_max=100):
+    if t <= 0:
+        return np.nan
+
+    sum_val = 0.0
+    for i in range(i_max + 1):
+        arg_1 = (1 - x + 2 * i) / (2 * np.sqrt(D * t))
+        arg_2 = (1 + x + 2 * i) / (2 * np.sqrt(D * t))
+        sum_val += erfc(arg_1) - erfc(arg_2)
+
+    return sum_val
+
+
+def plot_analytical_solution(y, solutions, times, D):
+    nx = 100
+    y_analytic = np.linspace(0.0, 1.0, nx)
+
+    plt.figure(figsize=(7, 5))
+
+    for i, t_val in enumerate(times):
+        # Analytical
+        c_analytical = [analytical_solution(yy, t_val, D=D) for yy in y_analytic]
+        plt.plot(y_analytic, c_analytical, label=f"Analytical t={t_val:.3g}")
+
+        c_analytical = np.array(c_analytical)
+        c2D = solutions[i]
+        c_avg = np.mean(c2D, axis=1)
+
+        plt.plot(y, c_avg, "o", label=f"Simulation t={t_val:.3g}")
+
+    plt.xlabel("y (Position)")
+    plt.ylabel("Concentration c(y, t)")
+    plt.legend()
+    plt.title("Diffusion Simulation vs Analytical Solution")
+    plt.grid(True)
     plt.show()
