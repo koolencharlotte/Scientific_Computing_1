@@ -83,8 +83,6 @@ def initialize_wave(which_one, L, N):
 
     # Use specified function to model initial configuration
     if which_one == 1:
-    # Use specified function to model initial configuration
-    if which_one == 1:
         func = b_one
     elif which_one == 2:
         func = b_two
@@ -151,12 +149,12 @@ def wave_step_function(all_sols, c, xs, deltax, deltat):
         if j == 0:
             sols_next[j] = 0
         elif j == len(xs) - 1:
-    for j, x in enumerate(xs):
-        # Border conditions
-        if j == 0:
-            sols_next[j] = 0
-        elif j == len(xs) - 1:
-            sols_next[j] = 0
+            for j, x in enumerate(xs):
+                # Border conditions
+                if j == 0:
+                    sols_next[j] = 0
+                elif j == len(xs) - 1:
+                    sols_next[j] = 0
 
         # In case point is not a border point, update according to previous value and neighboring values
 
@@ -172,13 +170,13 @@ def wave_step_function(all_sols, c, xs, deltax, deltat):
 
     # Update saved data
     sols_prev = sols.copy()
-            sols_next[j] = (
-                np.power(deltat, 2)
-                * np.power(c, 2)
-                * spat_approx_1a(deltax, (sols[j - 1], sols[j], sols[j + 1]))
-                + 2 * sols[j]
-                - sols_prev[j]
-            )
+    sols_next[j] = (
+        np.power(deltat, 2)
+        * np.power(c, 2)
+        * spat_approx_1a(deltax, (sols[j - 1], sols[j], sols[j + 1]))
+        + 2 * sols[j]
+        - sols_prev[j]
+    )
 
     # Update saved data
     sols_prev = sols.copy()
@@ -449,8 +447,8 @@ def sequential_gauss_seidel(N, tol, max_iters):
                 # periodic boundary conditions
                 west = c[i - 1, j] if i > 0 else c[N - 1, j]
                 east = c[i + 1, j] if i < N - 1 else c[0, j]
-                south = c[i, j - 1] if j > 0 else c0
-                north = c[i, j + 1] if j < N - 1 else cL
+                south = c[i, j - 1] if j > 0 else 0
+                north = c[i, j + 1] if j < N - 1 else 1
 
                 # Gauss-Seidel update equation
                 c_next = 0.25 * (west + east + south + north)
