@@ -86,6 +86,7 @@ def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, itera
     plt.savefig("plots/fig_1i.png", dpi=300, bbox_inches="tight")
     plt.show()
 
+# 1ja
 def visualization_1j_omega_iters(iters_N, omega_range):
 
     plt.figure(figsize=(5.3, 2.5))
@@ -101,6 +102,7 @@ def visualization_1j_omega_iters(iters_N, omega_range):
     plt.savefig("plots/fig_1ja.png", dpi=300, bbox_inches="tight")
     plt.show()
 
+# 1jb
 def visualization_1j_N_omegas(N_values, optimal_omegas):
 
     plt.figure(figsize=(5.3, 2.5))

@@ -341,8 +341,6 @@ def sequential_jacobi(N, tol, max_iters):
 
     return iter
 
-
-# sequential gauss seidel
 def sequential_gauss_seidel(N, tol, max_iters):
     """
     Solves using the Gauss-Seidel iteration method.
@@ -386,7 +384,6 @@ def sequential_gauss_seidel(N, tol, max_iters):
 
     return iter
 
-# sequential SOR iteration
 def sequential_SOR(N, tol, max_iters, omega):
     """
     Solves using the Successive Over Relaxtion (SOR) iteration method.
