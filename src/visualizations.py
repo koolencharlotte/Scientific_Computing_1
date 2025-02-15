@@ -69,3 +69,45 @@ def animate_1c(L, N, c, deltat):
     animation = FuncAnimation(fig, animate, frames=1500, interval=1)
     animation.save("plots/network_animation10.gif", fps=50,  writer="ffmpeg")
     plt.show()
+
+def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor):
+    
+    plt.figure(figsize=(5.3, 2.5))
+    plt.plot(p_values, iterations_jacobi, color='blue', label="Jacobi")
+    plt.plot(p_values, iterations_gauss_seidel, color='orange', label="Gauss-Seidel")
+    plt.plot(p_values, iterations_sor, color='green', label="Successive Over Relaxation")
+    plt.xlabel(r'$p$', fontsize=14)
+    plt.ylabel('Iterations', fontsize=14)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.legend(fontsize=10, loc="upper left")
+    plt.grid(True)
+    plt.title("Convergence Measure vs. Iterations")
+    plt.savefig("plots/fig_1i.png", dpi=300, bbox_inches="tight")
+    plt.show()
+
+def visualization_1j_omega_iters(iters_N, omega_range):
+
+    plt.figure(figsize=(5.3, 2.5))
+
+    for N, iters in iters_N.items():
+        plt.plot(omega_range, iters, label=f"N = {N}")
+
+    plt.xlabel(r'$\omega$', fontsize=14)
+    plt.ylabel('Iterations', fontsize=14)
+    plt.legend(fontsize=10, loc="upper left")
+    plt.title("SOR Convergence Speed vs. ω for Different Grid Sizes", fontsize=14)
+    plt.grid(True)
+    plt.savefig("plots/fig_1ja.png", dpi=300, bbox_inches="tight")
+    plt.show()
+
+def visualization_1j_N_omegas(N_values, optimal_omegas):
+
+    plt.figure(figsize=(5.3, 2.5))
+    plt.plot(N_values, optimal_omegas, marker='o', linestyle='-')
+    plt.xlabel('Grid Size N', fontsize=14)
+    plt.ylabel('Optimal ω', fontsize=14)
+    plt.title("Optimal ω vs. Grid Size N", fontsize=14)
+    plt.grid(True)
+    plt.savefig("plots/fig_1jb.png", dpi=300, bbox_inches="tight")
+    plt.show()
