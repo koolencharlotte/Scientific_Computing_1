@@ -2,7 +2,7 @@ import os
 import pickle as pkl
 
 import numpy as np
-
+from math import erfc
 
 def spat_approx_1a(deltax, solutions):
     """
@@ -146,6 +146,142 @@ def one_b_wrapper(which_one, L, N, c, deltat, iters=20000):
     # Return solution and x-values for which these solutions are computed
     return overall_solutions, xs
 
+def two_dimensional_step_wave_function(all_sols, c, xs, deltax, deltat):
+    pass
+
+def analytical_solution(x, t, D=1, i_max=100):
+    """
+    Function describing the analytical solution to the 2D 
+    diffusion equation/ 
+    """
+    if t <= 0:  
+        return 0
+
+    sum_val = 0.0
+    for i in range(i_max + 1):
+        arg_1 = (1 - x + 2 * i) / (2 * np.sqrt(D * t))
+        arg_2 = (1 + x + 2 * i) / (2 * np.sqrt(D * t))
+        sum_val += erfc(arg_1) - erfc(arg_2)
+
+    return sum_val
+
+
+def initialize_grid(N):
+    grid = np.zeros((N, N))
+
+    grid[0, :] = 0  # bottom boundary
+    grid[N - 1, :] = 1  # top boundary
+
+    return grid
+
+
+def apply_periodic_boundary(grid):
+    grid[:, 0] = grid[:, -2]
+    grid[:, -1] = grid[:, 1]
+
+
+def update(grid, num_steps, N, gamma, dt, comparison=False):
+    all_grids = [grid.copy()]
+    print(f"this is the curent working directory: {os.getcwd()}")
+    t = 0
+    times = [0]
+
+    time_appended = set()  # Define this outside the loop
+
+    key_times = {0.001, 0.01, 0.1, 1.0}
+
+    for n in range(num_steps):
+        c_new = grid.copy()
+        for i in range(1, N - 1):
+            for j in range(1, N - 1):
+                c_new[i, j] = grid[i, j] + gamma * (
+                    grid[i + 1, j]
+                    + grid[i - 1, j]
+                    + grid[i, j + 1]
+                    + grid[i, j - 1]
+                    - 4 * grid[i, j]
+                )
+
+        apply_periodic_boundary(c_new)
+
+        grid[:] = c_new[:]
+
+        t = round(t + dt, 6)
+        print(f"Step: {n}, Time: {t}")
+
+        if comparison:
+            for key_t in key_times:
+                if np.isclose(t, key_t, atol=1e-9) and t not in time_appended:
+                    all_grids.append(c_new.copy())
+                    times.append(t)
+                    time_appended.add(t)
+        else:
+            if n % 100 == 0:
+                all_grids.append(grid.copy())
+                times.append(t)
+
+    if comparison:
+        path = "data/2D_diffusion_comparison.pkl"
+    else:
+        path = "data/2D_diffusion.pkl"
+
+    pkl.dump(
+        (all_grids, times),
+        open(path, "wb"),
+    )
+
+    return all_grids, times
+
+
+def run_simulation_without_animation():
+    N = 100
+    c = initialize_grid(N)
+    L = 1.0
+    D = 1
+    all_grids = [c]
+
+    dx = L / N
+    dt = 0.25 * dx**2
+
+    T_total = 1.0
+    num_steps = T_total / dt
+
+    t = 0
+    times = [0]
+
+    gamma = (D * dt) / (dx**2)
+
+    T_total = 1.0
+    num_steps = int(T_total / dt)
+
+    if os.path.exists("Scientific_Computing_1/data/2D_diffusion.pkl"):
+        all_grids, times = pkl.load(
+            open("Scientific_Computing_1/data/2D_diffusion.pkl", "rb")
+        )
+    else:
+        all_grids, times = update(c, num_steps, N, gamma, dt)
+
+    return all_grids, times
+
+
+def check_and_parse_data(data_file, newdata, values):
+
+    # check if main folder exists
+    assert os.path.exists("data"), "Directory to the data folder does not exist (create directory data)"
+
+    c, num_steps, N, gamma, dt = values
+    # if existing data is used for simulation, this data is chosen
+
+    if not newdata:
+        if os.path.exists(f"data/{data_file}"):
+            all_c, times = pkl.load(open(f"data/{data_file}", "rb"))
+        else:
+            raise ValueError(f"the data {data_file} does not exist, choose an existing file")
+    else:
+        all_c, times = update(c, num_steps, N, gamma, dt, comparison=True)
+
+    return all_c, times
+
 
 # sequential jacobi iteration
 def sequential_jacobi(N, tol, max_iters):
@@ -259,103 +395,3 @@ def sequential_gauss_seidel(N, tol, max_iters):
     return c
 
 
-def two_dimensional_step_wave_function(all_sols, c, xs, deltax, deltat):
-    pass
-
-
-def initialize_grid(N):
-    grid = np.zeros((N, N))
-
-    grid[0, :] = 0  # bottom boundary
-    grid[N - 1, :] = 1  # top boundary
-
-    return grid
-
-
-def apply_periodic_boundary(grid):
-    grid[:, 0] = grid[:, -2]
-    grid[:, -1] = grid[:, 1]
-
-
-def update(grid, num_steps, N, gamma, dt, comparison=False):
-    all_grids = [grid.copy()]
-    print(f"this is the curent working directory: {os.getcwd()}")
-    t = 0
-    times = [0]
-
-    time_appended = set()  # Define this outside the loop
-
-    key_times = {0.001, 0.01, 0.1, 1.0}
-
-    for n in range(num_steps):
-        c_new = grid.copy()
-        for i in range(1, N - 1):
-            for j in range(1, N - 1):
-                c_new[i, j] = grid[i, j] + gamma * (
-                    grid[i + 1, j]
-                    + grid[i - 1, j]
-                    + grid[i, j + 1]
-                    + grid[i, j - 1]
-                    - 4 * grid[i, j]
-                )
-
-        apply_periodic_boundary(c_new)
-
-        grid[:] = c_new[:]
-
-        t = round(t + dt, 6)
-        print(f"Step: {n}, Time: {t}")
-
-        if comparison:
-            for key_t in key_times:
-                if np.isclose(t, key_t, atol=1e-9) and t not in time_appended:
-                    all_grids.append(c_new.copy())
-                    times.append(t)
-                    time_appended.add(t)
-        else:
-            if n % 100 == 0:
-                all_grids.append(grid.copy())
-                times.append(t)
-
-    if comparison:
-        path = "data/2D_diffusion_comparison.pkl"
-    else:
-        path = "data/2D_diffusion.pkl"
-
-    pkl.dump(
-        (all_grids, times),
-        open(path, "wb"),
-    )
-
-    return all_grids, times
-
-
-def run_simulation_without_animation():
-    N = 100
-    c = initialize_grid(N)
-    L = 1.0
-    D = 1
-    all_grids = [c]
-
-    dx = L / N
-    dt = 0.25 * dx**2
-
-    T_total = 1.0
-    num_steps = T_total / dt
-
-    t = 0
-    times = [0]
-
-    gamma = (D * dt) / (dx**2)
-
-    T_total = 1.0
-    num_steps = int(T_total / dt)
-
-    if os.path.exists("Scientific_Computing_1/data/2D_diffusion.pkl"):
-        all_grids, times = pkl.load(
-            open("Scientific_Computing_1/data/2D_diffusion.pkl", "rb")
-        )
-    else:
-        all_grids, times = update(c, num_steps, N, gamma, dt)
-
-    return all_grids, times
