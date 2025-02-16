@@ -73,8 +73,7 @@ def animate_1c(L, N, c, deltat):
     
     animation = FuncAnimation(fig, animate, frames=300, interval=1)
     animation.save("plots/network_animation10.gif", fps=50,  writer="ffmpeg")
-    plt.show()
-
+    plt.show()   
 
 
 def plot_analytical_solution(y, solutions_vals, times, D):
@@ -191,14 +190,20 @@ def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
     return animation
 
 
+def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor, colors):
 
-
-def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor):
-    
     plt.figure(figsize=(5.3, 2.5))
-    plt.plot(p_values, iterations_jacobi, color='blue', label="Jacobi")
-    plt.plot(p_values, iterations_gauss_seidel, color='orange', label="Gauss-Seidel")
-    plt.plot(p_values, iterations_sor, color='green', label="Successive Over Relaxation")
+    
+    linestyles = ['-', '--', '-.', ':']
+    num_styles = len(linestyles)
+
+    plt.plot(p_values, iterations_jacobi, color=colors[0], label="Jacobi")
+    plt.plot(p_values, iterations_gauss_seidel, color=colors[1], label="Gauss-Seidel")
+
+    for i, (omega, sor_iterations) in enumerate(iterations_sor.items()):
+        plt.plot(p_values, sor_iterations, label=f"SOR (ω={omega})", color=colors[2], linestyle=linestyles[i % num_styles])
+
+    # plt.plot(p_values, iterations_sor, color=colors[2], label="Successive Over Relaxation")
     plt.xlabel(r'$p$', fontsize=14)
     plt.ylabel('Iterations', fontsize=14)
     plt.xticks(fontsize=12)
@@ -210,12 +215,15 @@ def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, itera
     plt.show()
 
 # 1ja
-def visualization_1j_omega_iters(iters_N, omega_range):
+def visualization_1j_omega_iters(iters_N, omega_range, colors):
 
     plt.figure(figsize=(5.3, 2.5))
 
-    for N, iters in iters_N.items():
-        plt.plot(omega_range, iters, label=f"N = {N}")
+    linestyles = ['-', '--', '-.', ':']
+    num_styles = len(linestyles)
+
+    for i, (N, iters) in enumerate(iters_N.items()):
+        plt.plot(omega_range, iters, label=f"N = {N}", color=colors[2],  linestyle=linestyles[i % num_styles])
 
     plt.xlabel(r'$\omega$', fontsize=14)
     plt.ylabel('Iterations', fontsize=14)
@@ -226,10 +234,10 @@ def visualization_1j_omega_iters(iters_N, omega_range):
     plt.show()
 
 # 1jb
-def visualization_1j_N_omegas(N_values, optimal_omegas):
+def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
 
     plt.figure(figsize=(5.3, 2.5))
-    plt.plot(N_values, optimal_omegas, marker='o', linestyle='-')
+    plt.plot(N_values, optimal_omegas, marker='o', linestyle='-', color=colors[2])
     plt.xlabel('Grid Size N', fontsize=14)
     plt.ylabel('Optimal ω', fontsize=14)
     plt.title("Optimal ω vs. Grid Size N", fontsize=14)
