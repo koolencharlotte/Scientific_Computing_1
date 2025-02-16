@@ -6,7 +6,7 @@ import numpy as np
 import src.solutions as solutions
 from matplotlib.animation import FuncAnimation
 
-from .solutions import initialize_grid, update
+# from .solutions import initialize_grid, update
 
 
 def visualization_1b(overall_solutions, xs):
@@ -32,11 +32,11 @@ def animate_1c(L, N, c, deltat):
 
     fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
     # ax.set_title(f"Wave Time-stepping Approximation (frame: 1)")
-    functions = [
-    r"$\sin(2\pi x)$",
-    r"$\sin(5\pi x)$",
-    r"$\sin(5\pi x) \text{ if } \frac{1}{5} < x < \frac{2}{5}, \text{ else } 0$"
-    ]
+    # functions = [
+    # r"$\sin(2\pi x)$",
+    # r"$\sin(5\pi x)$",
+    # r"$\sin(5\pi x) \text{ if } \frac{1}{5} < x < \frac{2}{5}, \text{ else } 0$"
+    # ]
     fig.suptitle("Wave Time-Stepping Animation")
     all_soltjes = []
     for j in range(3):

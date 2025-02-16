@@ -17,18 +17,6 @@ def spat_approx_1a(deltax, solutions):
     assert deltax != 0, "can't divide by 0 (spatial approximation)"
     return (solutions[2] - 2 * solutions[1] + solutions[0]) / np.power(deltax, 2)
 
-    """
-    Parameters:
-    deltax (float): Spatial step size.
-    solutions (tuple): Three consecutive solution values (previous, current, next).
-
-    Returns:
-    float: Second-order finite difference approximation.
-    """
-
-    assert deltax != 0, "can't divide by 0 (spatial approximation)"
-    return (solutions[2] - 2 * solutions[1] + solutions[0]) / np.power(deltax, 2)
-
 
 def initialize_wave(which_one, L, N):
     """
@@ -44,38 +32,18 @@ def initialize_wave(which_one, L, N):
     """
 
     # Functions to initialize configuration
-    """
-    Initializes the wave function with a chosen initial condition.
-
-    Parameters:
-    which_one (int): Selects the initial condition (1, 2, or 3).
-    L (float): Length of the spatial domain.
-    N (int): Number of spatial divisions.
-
-    Returns:
-    tuple: Initial wave solutions (previous, current, next), spatial points, and deltax.
-    """
-
-    # Functions to initialize configuration
     def b_one(x):
-        return np.sin(2 * np.pi * x)
         return np.sin(2 * np.pi * x)
 
     def b_two(x):
-        return np.sin(5 * np.pi * x)
         return np.sin(5 * np.pi * x)
 
     def b_three(x):
         if x > 1 / 5 and x < 2 / 5:
             return np.sin(5 * np.pi * x)
-        if x > 1 / 5 and x < 2 / 5:
-            return np.sin(5 * np.pi * x)
         else:
             return 0
 
-    # Spatial step size
-    assert N > 0, "Number of subparts must be greater than 0 (zero-division)"
-    deltax = L / N
     # Spatial step size
     assert N > 0, "Number of subparts must be greater than 0 (zero-division)"
     deltax = L / N
@@ -88,16 +56,7 @@ def initialize_wave(which_one, L, N):
         func = b_two
     elif which_one == 3:
         func = b_three
-    elif which_one == 2:
-        func = b_two
-    elif which_one == 3:
-        func = b_three
     else:
-        raise ValueError(
-            f"invalid option {which_one}, choose option 1, 2 or 3 (integer form)"
-        )
-
-    # saving the solutions
         raise ValueError(
             f"invalid option {which_one}, choose option 1, 2 or 3 (integer form)"
         )
@@ -105,31 +64,15 @@ def initialize_wave(which_one, L, N):
     # saving the solutions
     sols_prev = [func(xje) for xje in xs]
     # This solution is the same as previous as the derivative is 0 (applying Euler's method)
-    # This solution is the same as previous as the derivative is 0 (applying Euler's method)
     sols = sols_prev.copy()
 
-    # Next solutions are still empty
     # Next solutions are still empty
     sols_next = np.zeros(len(xs))
 
     return (sols_prev, sols, sols_next), xs, deltax
 
 
-
 def wave_step_function(all_sols, c, xs, deltax, deltat):
-    """
-    Performs one time step of the wave equation using finite differencing.
-
-    Parameters:
-    all_sols (tuple): Contains previous, current, and next solution arrays.
-    c (float): Wave speed.
-    xs (numpy array): Spatial grid points.
-    deltax (float): Spatial step size.
-    deltat (float): Time step size.
-
-    Returns:
-    tuple: Updated wave solutions (previous, current, next).
-    """
     """
     Performs one time step of the wave equation using finite differencing.
 
@@ -149,14 +92,7 @@ def wave_step_function(all_sols, c, xs, deltax, deltat):
         if j == 0:
             sols_next[j] = 0
         elif j == len(xs) - 1:
-            for j, x in enumerate(xs):
-                # Border conditions
-                if j == 0:
-                    sols_next[j] = 0
-                elif j == len(xs) - 1:
-                    sols_next[j] = 0
-
-        # In case point is not a border point, update according to previous value and neighboring values
+            sols_next[j] = 0
 
         # In case point is not a border point, update according to previous value and neighboring values
         else:
@@ -167,16 +103,6 @@ def wave_step_function(all_sols, c, xs, deltax, deltat):
                 + 2 * sols[j]
                 - sols_prev[j]
             )
-
-    # Update saved data
-    sols_prev = sols.copy()
-    sols_next[j] = (
-        np.power(deltat, 2)
-        * np.power(c, 2)
-        * spat_approx_1a(deltax, (sols[j - 1], sols[j], sols[j + 1]))
-        + 2 * sols[j]
-        - sols_prev[j]
-    )
 
     # Update saved data
     sols_prev = sols.copy()
@@ -320,7 +246,6 @@ def run_simulation_without_animation():
     T_total = 1.0
     num_steps = T_total / dt
 
-    t = 0
     times = [0]
 
     gamma = (D * dt) / (dx**2)
