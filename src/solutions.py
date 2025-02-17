@@ -1,8 +1,9 @@
 import os
 import pickle as pkl
+from math import erfc
 
 import numpy as np
-from math import erfc
+
 
 def spat_approx_1a(deltax, solutions):
     """
@@ -146,18 +147,21 @@ def one_b_wrapper(which_one, L, N, c, deltat, iters=20000):
     # Return solution and x-values for which these solutions are computed
     return overall_solutions, xs
 
+
 def two_dimensional_step_wave_function(all_sols, c, xs, deltax, deltat):
     pass
 
+
 def analytical_solution(x, t, D=1, i_max=100):
     """
-    Function describing the analytical solution to the 2D 
-    diffusion equation/ 
+    Function describing the analytical solution to the 2D
+    diffusion equation/
     """
-    if t <= 0:  
+    if t <= 0:
         return 0
 
     sum_val = 0.0
+    # formula for the analytical solution as given in the assignment description
     for i in range(i_max + 1):
         arg_1 = (1 - x + 2 * i) / (2 * np.sqrt(D * t))
         arg_2 = (1 + x + 2 * i) / (2 * np.sqrt(D * t))
@@ -167,6 +171,12 @@ def analytical_solution(x, t, D=1, i_max=100):
 
 
 def initialize_grid(N):
+    """
+    Generates a grid with the specified dimensions and initializes the boundaries.
+    Parameters:
+        N (int): Grid size.
+    """
+
     grid = np.zeros((N, N))
 
     grid[0, :] = 0  # bottom boundary
@@ -176,17 +186,58 @@ def initialize_grid(N):
 
 
 def apply_periodic_boundary(grid):
+    """
+    Applies periodic boundary conditions to the grid in horizontal direction.
+    """
+
     grid[:, 0] = grid[:, -2]
     grid[:, -1] = grid[:, 1]
 
 
 def update(grid, num_steps, N, gamma, dt, comparison=False):
+    """
+    Evolve a 2D grid using an explicit finite difference scheme to simulate diffusion.
+
+    This function updates the grid over a specified number of time steps using a finite
+    difference approximation of the 2D diffusion equation with periodic boundary conditions.
+    At selected time steps, snapshots of the grid are saved along with their corresponding
+    simulation times.
+
+    Parameters
+    ----------
+    grid : numpy.ndarray
+        A 2D array representing the initial concentration distribution.
+    num_steps : int
+        The total number of time steps to simulate.
+    N : int
+        The number of grid points along each dimension (assumes a square grid of size N x N).
+    gamma : float
+        The diffusion coefficient factor used in the finite difference update.
+    dt : float
+        The time increment for each simulation step.
+    comparison : bool, optional
+        If True, the function saves grid snapshots at specific key times (0.001, 0.01, 0.1, 1.0).
+        If False, snapshots are saved every 100 steps. Default is False.
+
+    Returns
+    -------
+    all_grids : list of numpy.ndarray
+        A list containing copies of the grid at the selected time steps.
+    times : list of float
+        A list of simulation times corresponding to each saved grid snapshot.
+
+    Side Effects
+    ------------
+    Writes a pickle file containing the tuple (all_grids, times) to disk. The file is saved
+    to "data/2D_diffusion_comparison.pkl" if `comparison` is True, and "data/2D_diffusion.pkl"
+    otherwise.
+    """
+
     all_grids = [grid.copy()]
-    print(f"this is the curent working directory: {os.getcwd()}")
     t = 0
     times = [0]
 
-    time_appended = set()  # Define this outside the loop
+    time_appended = set()
 
     key_times = {0.001, 0.01, 0.1, 1.0}
 
@@ -234,20 +285,45 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
 
 
 def run_simulation_without_animation():
+    """
+    Run a 2D diffusion simulation without animation.
+
+    This function initializes a 2D grid and performs a diffusion simulation over a total
+    time of T_total = 1.0 using an explicit finite difference scheme. The simulation is set up
+    with a grid size of N = 100, a spatial domain of length L = 1.0, and a diffusion coefficient D = 1.
+    The time step is computed as dt = 0.25 * (dx)**2 where dx = L / N, and the diffusion factor is
+    given by gamma = (D * dt) / (dx**2).
+
+    The simulation attempts to load previously computed data from the file
+    "Scientific_Computing_1/data/2D_diffusion.pkl". If the file exists, the grid snapshots and
+    corresponding times are loaded from the file; otherwise, the simulation is executed by calling
+    the `update` function.
+
+    Returns
+    -------
+    all_grids : list of numpy.ndarray
+        A list containing copies of the grid at selected time steps.
+    times : list of float
+        A list of simulation times corresponding to each saved grid snapshot.
+    """
+
     N = 100
     c = initialize_grid(N)
     L = 1.0
     D = 1
+    # Define initial grid
     all_grids = [c]
 
     dx = L / N
     dt = 0.25 * dx**2
 
+    # Set time as 1.0 and compute number of intermediate time steps based on 'dt'
     T_total = 1.0
     num_steps = T_total / dt
 
     times = [0]
 
+    # Define gamma as a separate variable to make calculations easier in the update function
     gamma = (D * dt) / (dx**2)
 
     T_total = 1.0
@@ -264,9 +340,49 @@ def run_simulation_without_animation():
 
 
 def check_and_parse_data(data_file, newdata, values):
+    """
+    Load simulation data from a file or generate new data by running a simulation.
+
+    This function first checks for the existence of a "data" directory. It then unpacks the
+    simulation parameters from the provided `values` tuple. Depending on the `newdata` flag,
+    the function either loads existing simulation data from the specified `data_file` or runs
+    a new simulation using the `update` function with `comparison=True`.
+
+    Parameters
+    ----------
+    values : tuple
+        A tuple containing the simulation parameters in the following order:
+        (c, num_steps, N, gamma, dt), where:
+            c : numpy.ndarray
+                The initial grid configuration.
+            num_steps : int
+                The number of simulation steps.
+            N : int
+                The grid size (assumes a square grid of dimensions N x N).
+            gamma : float
+                The diffusion coefficient factor used in the simulation.
+            dt : float
+                The time step size.
+    newdata : bool
+        Flag indicating whether to generate new simulation data. If False, the function
+        attempts to load existing data from the file specified by `data_file`.
+    data_file : str
+        The name of the file (located in the "data" directory) from which to load the
+        simulation data if `newdata` is False.
+
+    Returns
+    -------
+    all_c : list of numpy.ndarray
+        A list of grid snapshots from the simulation.
+    times : list of float
+        A list of times corresponding to each grid snapshot.
+
+    """
 
     # check if main folder exists
-    assert os.path.exists("data"), "Directory to the data folder does not exist (create directory data)"
+    assert os.path.exists("data"), (
+        "Directory to the data folder does not exist (create directory data)"
+    )
 
     c, num_steps, N, gamma, dt = values
     # if existing data is used for simulation, this data is chosen
@@ -275,7 +391,9 @@ def check_and_parse_data(data_file, newdata, values):
         if os.path.exists(f"data/{data_file}"):
             all_c, times = pkl.load(open(f"data/{data_file}", "rb"))
         else:
-            raise ValueError(f"the data {data_file} does not exist, choose an existing file")
+            raise ValueError(
+                f"the data {data_file} does not exist, choose an existing file"
+            )
     else:
         all_c, times = update(c, num_steps, N, gamma, dt, comparison=True)
 
@@ -286,10 +404,10 @@ def check_and_parse_data(data_file, newdata, values):
 def sequential_jacobi(N, tol, max_iters):
     """
     Solves using the Jacobi iteration method.
-    
+
     The update equation is:
         c_{i,j}^{k+1} = (1/4) * (c_{i+1,j}^{k} + c_{i-1,j}^{k} + c_{i,j+1}^{k} + c_{i,j-1}^{k})
-    
+
     Parameters:
         N (int): Grid size.
         tol (float): Convergence tolerance.
@@ -342,13 +460,14 @@ def sequential_jacobi(N, tol, max_iters):
 
     return iter
 
+
 def sequential_gauss_seidel(N, tol, max_iters):
     """
     Solves using the Gauss-Seidel iteration method.
-    
+
     The update equation is:
         c_{i,j}^{n+1} = (1/4) * (c_{i+1,j}^{k} + c_{i-1,j}^{k+1} + c_{i,j+1}^{k} + c_{i,j-1}^{k+1})
-    
+
     Parameters:
         N (int): Grid size.
         tol (float): Convergence tolerance.
@@ -385,13 +504,14 @@ def sequential_gauss_seidel(N, tol, max_iters):
 
     return iter
 
+
 def sequential_SOR(N, tol, max_iters, omega):
     """
     Solves using the Successive Over Relaxtion (SOR) iteration method.
-    
+
     The update equation is:
         c_{i,j}^{k+1} = (omega/4) * (c_{i+1,j}^{k} + c_{i,j+1}^{k} + c_{i,j+1}^{k} + (1 - omega) c_{i,j}^{k})
-    
+
     Parameters:
         N (int): Grid size.
         tol (float): Convergence tolerance.
@@ -406,14 +526,13 @@ def sequential_SOR(N, tol, max_iters, omega):
     c = initialize_grid(N)
 
     iter = 0
-    delta = float('inf')
+    delta = float("inf")
 
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N-1):  # periodic in x
-            for j in range(1, N-1):  # fixed in y
-
+        for i in range(1, N - 1):  # periodic in x
+            for j in range(1, N - 1):  # fixed in y
                 # periodic boundary conditions
                 west = c[i - 1, j] if i > 0 else c[N - 1, j]
                 east = c[i + 1, j] if i < N - 1 else c[0, j]
@@ -421,7 +540,9 @@ def sequential_SOR(N, tol, max_iters, omega):
                 north = c[i, j + 1] if j < N - 1 else 1
 
                 # SOR update equation
-                c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[i, j]
+                c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[
+                    i, j
+                ]
 
                 delta = max(delta, abs(c_next - c[i, j]))
                 c[i, j] = c_next

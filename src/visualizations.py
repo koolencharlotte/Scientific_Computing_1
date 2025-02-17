@@ -10,27 +10,26 @@ from matplotlib.animation import FuncAnimation
 
 
 def visualization_1b(overall_solutions, xs):
-    fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
+    fig, axs = plt.subplots(1, 3, figsize=(5.3, 2.5), sharey=True)
 
     for j in range(len(overall_solutions)):
         for k in range(len(overall_solutions[j])):
             axs[j].plot(xs, overall_solutions[j][k], linewidth=0.9)
         axs[j].set_xlabel("x")
-        axs[j].set_title('i'*(j+1))
-   
-    axs[0].set_ylabel(r'$\Psi^n$', labelpad=1)
+        axs[j].set_title("i" * (j + 1))
+
+    axs[0].set_ylabel(r"$\Psi^n$", labelpad=1)
     axs[0].yaxis.set_label_coords(-0.22, 0.5)
 
     fig.suptitle("Wave Time-stepping Approximation")
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.08, top=0.8) 
+    plt.subplots_adjust(wspace=0.08, top=0.8)
     plt.savefig("plots/fig_1B.png", dpi=300)
     plt.show()
 
 
 def animate_1c(L, N, c, deltat):
-
-    fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
+    fig, axs = plt.subplots(1, 3, figsize=(5.3, 2.5), sharey=True)
     # ax.set_title(f"Wave Time-stepping Approximation (frame: 1)")
     # functions = [
     # r"$\sin(2\pi x)$",
@@ -40,15 +39,15 @@ def animate_1c(L, N, c, deltat):
     fig.suptitle("Wave Time-Stepping Animation")
     all_soltjes = []
     for j in range(3):
-        soltjes, xs, deltax = solutions.initialize_wave(j+1, L, N)
+        soltjes, xs, deltax = solutions.initialize_wave(j + 1, L, N)
         all_soltjes.append(soltjes)
-        axs[j].plot(xs, all_soltjes[j][1]) 
+        axs[j].plot(xs, all_soltjes[j][1])
         # axs[j].set_title(functions[j])
-        axs[j].set_title('i'*(j+1))
+        axs[j].set_title("i" * (j + 1))
         axs[j].set_xlabel("x")
-   
-    axs[0].set_ylabel(r'$\Psi$')
-    
+
+    axs[0].set_ylabel(r"$\Psi$")
+
     plt.tight_layout()  # Prevent overlap
     fig.subplots_adjust(top=0.8)  # Move suptitle higher
     plt.pause(1)
@@ -61,25 +60,38 @@ def animate_1c(L, N, c, deltat):
             axs[i].set_xlim(0, L)  # Set x-axis limits
             axs[i].set_ylim(-1, 1)  # Set y-axis limits
             # axs[i].set_title(functions[i])
-            axs[i].set_title('i'*(i+1))
+            axs[i].set_title("i" * (i + 1))
             for _ in range(10):
                 soltjes = solutions.wave_step_function(soltjes, c, xs, deltax, deltat)
             all_soltjes[i] = soltjes
-            axs[i].plot(xs, soltjes[1]) 
+            axs[i].plot(xs, soltjes[1])
             axs[i].set_xlabel("x")
-   
-        axs[0].set_ylabel(r'$\Psi$')
 
-    
+        axs[0].set_ylabel(r"$\Psi$")
+
     animation = FuncAnimation(fig, animate, frames=300, interval=1)
-    animation.save("plots/network_animation10.gif", fps=50,  writer="ffmpeg")
-    plt.show()   
+    animation.save("plots/network_animation10.gif", fps=50, writer="ffmpeg")
+    plt.show()
 
 
 def plot_analytical_solution(y, solutions_vals, times, D):
     """
-    Funcion comparing analytical solution to numerical solution. 
-    Plotting points for numerical solution and line for analytical soltution 
+    Plot and compare the analytical and simulated solutions of the diffusion equation.
+
+    Parameters
+    ----------
+    times : list or array-like of float
+        A list of time values at which the analytical solution and simulation data are compared.
+    solutions_vals : list of numpy.ndarray
+        A list of 2D arrays containing the simulation data corresponding to each time in `times`.
+        The first column of each 2D array is used for comparison with the analytical solution.
+    D : float
+        The diffusion coefficient used in the analytical solution.
+
+    Returns
+    -------
+    None
+        The function generates a plot that is saved as a PNG file and displayed on the screen.
     """
     nx = 100
     y_analytic = np.linspace(0.0, 1.0, nx)
@@ -89,18 +101,26 @@ def plot_analytical_solution(y, solutions_vals, times, D):
 
     for i, t_val in enumerate(times):
         # Analytical
-        c_analytical = [solutions.analytical_solution(yy, t_val, D=D) for yy in y_analytic]
-        plt.plot(y_analytic, c_analytical, color = colors[i], linewidth=0.8, label=f"t={t_val:.3g}")
+        c_analytical = [
+            solutions.analytical_solution(yy, t_val, D=D) for yy in y_analytic
+        ]
+        plt.plot(
+            y_analytic,
+            c_analytical,
+            color=colors[i],
+            linewidth=0.8,
+            label=f"t={t_val:.3g}",
+        )
 
         c_analytical = np.array(c_analytical)
 
         # mean of the row (should theoretically all be the same)
         c2D = solutions_vals[i]
         # c_avg = np.mean(c2D, axis=1)
-        c_first = c2D[:, 0]  
+        c_first = c2D[:, 0]
 
         # slice array to avoid clutteredness
-        plt.plot(y[::2], c_first[::2], "o", color = colors[i], markersize=2)
+        plt.plot(y[::2], c_first[::2], "o", color=colors[i], markersize=2)
 
     plt.xlabel("y (Position)")
     plt.ylabel("Concentration c(y, t)")
@@ -113,11 +133,24 @@ def plot_analytical_solution(y, solutions_vals, times, D):
 
 def plot_five_states(all_c, times):
     """
-    function plotting the 2D diffustion grid, 
-    5 states for t = 0, 0.001, 0.01, 0.1, 1.0
+    Plot and save snapshots of a 2D diffusion simulation at different time values.
+
+    Parameters
+    ----------
+    all_c : list of numpy.ndarray
+        A list of 2D numpy arrays representing the simulation states. The first five elements
+        of the list are used for the snapshots.
+    times : list of float
+        A list of time values corresponding to each snapshot in `all_c`. At least five time values
+        should be provided.
+
+    Returns
+    -------
+    None
+        The function displays the plot
     """
 
-    # # read in/ generate data 
+    # # read in/ generate data
     # data_file = "2D_diffusion.pkl"
     # create_new_data = False
     # all_c, times = solutions.check_and_parse_data(data_file, create_new_data, parameters)
@@ -125,18 +158,20 @@ def plot_five_states(all_c, times):
     # plot setup
     fig, axs = plt.subplots(2, 3, figsize=(5.8, 4.3), sharex=True, sharey=True)
     fig.suptitle("2D Diffusion at Different t Values")
-    axs = axs.flatten()  
+    axs = axs.flatten()
 
     # Hide the last unused subplot
-    axs[-1].set_visible(False)  
+    axs[-1].set_visible(False)
     for i in range(5):
-        im = axs[i].imshow(all_c[i], cmap="viridis", interpolation="nearest", origin="lower")
+        im = axs[i].imshow(
+            all_c[i], cmap="viridis", interpolation="nearest", origin="lower"
+        )
         axs[i].set_title(f"t = {times[i]}")
-        if i >1: 
+        if i > 1:
             axs[i].set_xlabel("x")
 
     # set proper ticks and labels
-    axs[2].xaxis.set_tick_params(which='both', labelbottom=True)
+    axs[2].xaxis.set_tick_params(which="both", labelbottom=True)
     axs[0].set_ylabel("y")
     axs[3].set_ylabel("y")
 
@@ -144,11 +179,29 @@ def plot_five_states(all_c, times):
     fig.colorbar(im, cax=cbar_ax, label="Concentration")
 
     plt.tight_layout(rect=[0, 0, 0.93, 1])
-    plt.subplots_adjust(wspace=0.05, hspace=0.2) 
+    plt.subplots_adjust(wspace=0.05, hspace=0.2)
     plt.savefig("plots/diffusion_snapshots.png", dpi=300)
     plt.show()
 
+
 def plot_simulation_without_animation(grids, N):
+    """
+    Plot the final state of a 2D diffusion simulation
+
+    Parameters
+    ----------
+    grids : list of numpy.ndarray
+        A list of 2D numpy arrays representing the simulation states over time. The final state
+        (last element in the list) is used for plotting.
+    N : int
+        The grid size (assumed to be an N x N grid).
+
+    Returns
+    -------
+    None
+        The function displays the plot and does not return any value.
+    """
+
     fig, ax = plt.subplots(figsize=(7, 7))
 
     c_plot = ax.pcolormesh(grids[-1], cmap="viridis", edgecolors="k", linewidth=0.5)
@@ -164,6 +217,38 @@ def plot_simulation_without_animation(grids, N):
 
 
 def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
+    """
+    Animate a 2D diffusion simulation and save the result as a GIF.
+
+    This function creates an animation of a 2D diffusion simulation using a sequence of grid snapshots.
+    It first attempts to load simulation data from "data/2D_diffusion_comparison.pkl". If
+    the file does not exist, it runs the provided update function to generate the simulation data.
+
+    Parameters
+    ----------
+    update_func : function
+        The function used to generate or update the simulation grid. It must accept the parameters
+        (grid, num_steps, N, gamma, dt) and return a tuple (grids, times), where `grids` is a list of
+        2D numpy arrays representing the simulation states.
+    grid : numpy.ndarray
+        The initial 2D grid representing the concentration distribution.
+    num_steps : int
+        The number of time steps for the simulation.
+    N : int
+        The grid dimension (assumes a square grid of size N x N).
+    gamma : float
+        The diffusion coefficient factor used in the finite difference update.
+    dt : float
+        The time step size.
+    interval : int, optional
+        The delay between animation frames in milliseconds (default is 50).
+
+    Returns
+    -------
+    animation : matplotlib.animation.FuncAnimation
+        The animation object representing the 2D diffusion simulation.
+    """
+
     path = "data/2D_diffusion_comparison.pkl"
     if os.path.exists(path):
         grids, times = pkl.load(open(path, "rb"))
@@ -190,22 +275,29 @@ def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
     return animation
 
 
-def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor, colors):
-
+def visualization_1i(
+    p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor, colors
+):
     plt.figure(figsize=(5.3, 2.5))
-    
-    linestyles = ['-', '--', '-.', ':']
+
+    linestyles = ["-", "--", "-.", ":"]
     num_styles = len(linestyles)
 
     plt.plot(p_values, iterations_jacobi, color=colors[0], label="Jacobi")
     plt.plot(p_values, iterations_gauss_seidel, color=colors[1], label="Gauss-Seidel")
 
     for i, (omega, sor_iterations) in enumerate(iterations_sor.items()):
-        plt.plot(p_values, sor_iterations, label=f"SOR (ω={omega})", color=colors[2], linestyle=linestyles[i % num_styles])
+        plt.plot(
+            p_values,
+            sor_iterations,
+            label=f"SOR (ω={omega})",
+            color=colors[2],
+            linestyle=linestyles[i % num_styles],
+        )
 
     # plt.plot(p_values, iterations_sor, color=colors[2], label="Successive Over Relaxation")
-    plt.xlabel(r'$p$', fontsize=14)
-    plt.ylabel('Iterations', fontsize=14)
+    plt.xlabel(r"$p$", fontsize=14)
+    plt.ylabel("Iterations", fontsize=14)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.legend(fontsize=10, loc="upper left")
@@ -214,32 +306,38 @@ def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, itera
     plt.savefig("plots/fig_1i.png", dpi=300, bbox_inches="tight")
     plt.show()
 
+
 # 1ja
 def visualization_1j_omega_iters(iters_N, omega_range, colors):
-
     plt.figure(figsize=(5.3, 2.5))
 
-    linestyles = ['-', '--', '-.', ':']
+    linestyles = ["-", "--", "-.", ":"]
     num_styles = len(linestyles)
 
     for i, (N, iters) in enumerate(iters_N.items()):
-        plt.plot(omega_range, iters, label=f"N = {N}", color=colors[2],  linestyle=linestyles[i % num_styles])
+        plt.plot(
+            omega_range,
+            iters,
+            label=f"N = {N}",
+            color=colors[2],
+            linestyle=linestyles[i % num_styles],
+        )
 
-    plt.xlabel(r'$\omega$', fontsize=14)
-    plt.ylabel('Iterations', fontsize=14)
+    plt.xlabel(r"$\omega$", fontsize=14)
+    plt.ylabel("Iterations", fontsize=14)
     plt.legend(fontsize=10, loc="upper left")
     plt.title("SOR Convergence Speed vs. ω for Different Grid Sizes", fontsize=14)
     plt.grid(True)
     plt.savefig("plots/fig_1ja.png", dpi=300, bbox_inches="tight")
     plt.show()
 
+
 # 1jb
 def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
-
     plt.figure(figsize=(5.3, 2.5))
-    plt.plot(N_values, optimal_omegas, marker='o', linestyle='-', color=colors[2])
-    plt.xlabel('Grid Size N', fontsize=14)
-    plt.ylabel('Optimal ω', fontsize=14)
+    plt.plot(N_values, optimal_omegas, marker="o", linestyle="-", color=colors[2])
+    plt.xlabel("Grid Size N", fontsize=14)
+    plt.ylabel("Optimal ω", fontsize=14)
     plt.title("Optimal ω vs. Grid Size N", fontsize=14)
     plt.grid(True)
     plt.savefig("plots/fig_1jb.png", dpi=300, bbox_inches="tight")
