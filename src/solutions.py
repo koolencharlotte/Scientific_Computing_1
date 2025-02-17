@@ -427,7 +427,7 @@ def sequential_jacobi(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N - 1):  # periodic in x
+        for i in range(0, N):  # periodic in x
             for j in range(1, N - 1):  # fixed in y
                 # add
                 # if (c_old is a source) c_next = cL
@@ -486,7 +486,7 @@ def sequential_gauss_seidel(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N - 1):  # periodic in x
+        for i in range(0, N):  # periodic in x
             for j in range(1, N - 1):  # fixed in y
                 # periodic boundary conditions
                 west = c[i - 1, j] if i > 0 else c[N - 1, j]
@@ -531,7 +531,7 @@ def sequential_SOR(N, tol, max_iters, omega):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N - 1):  # periodic in x
+        for i in range(0, N):  # periodic in x
             for j in range(1, N - 1):  # fixed in y
                 # periodic boundary conditions
                 west = c[i - 1, j] if i > 0 else c[N - 1, j]
