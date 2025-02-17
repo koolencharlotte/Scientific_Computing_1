@@ -165,6 +165,18 @@ def analytical_solution(x, t, D=1, i_max=100):
 
     return sum_val
 
+def place_objects(N, num_object, seed=31, size_object=4):
+    object_grid = np.zeros((N,N))
+    np.random.seed(seed)
+    
+    for _ in range(num_object):
+
+        # staying within range of the grid, + not occupying border cell -> border conditions
+        x,y = np.random.randint(1, N - size_object + 2, size=2)
+        points = [(x+j, y+k) for j in range(size_object) for k in range(size_object)]
+        object_grid[zip(*points)] = 1
+
+    return object_grid 
 
 def initialize_grid(N):
     grid = np.zeros((N, N))
@@ -309,7 +321,7 @@ def sequential_jacobi(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N - 1):  # periodic in x
+        for i in range(0, N ):  # periodic in x
             for j in range(1, N - 1):  # fixed in y
                 # add
                 # if (c_old is a source) c_next = cL
@@ -385,7 +397,7 @@ def sequential_gauss_seidel(N, tol, max_iters):
 
     return iter
 
-def sequential_SOR(N, tol, max_iters, omega):
+def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
     """
     Solves using the Successive Over Relaxtion (SOR) iteration method.
     
@@ -411,15 +423,70 @@ def sequential_SOR(N, tol, max_iters, omega):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N-1):  # periodic in x
+        for i in range(0, N):  # periodic in x
             for j in range(1, N-1):  # fixed in y
+                
+                # if an grid point lies within the object 
+                if object_grid is not None and object_grid[(i, j)]:
+                    c_next = 0
+                    continue
 
                 # periodic boundary conditions
                 west = c[i - 1, j] if i > 0 else c[N - 1, j]
                 east = c[i + 1, j] if i < N - 1 else c[0, j]
                 south = c[i, j - 1] if j > 0 else 0
                 north = c[i, j + 1] if j < N - 1 else 1
+                
+                # SOR update equation
+                c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[i, j]
 
+                delta = max(delta, abs(c_next - c[i, j]))
+                c[i, j] = c_next
+
+        iter += 1
+
+    return iter
+
+def non_sequential_SOR(params):
+    """
+    Solves using the Successive Over Relaxtion (SOR) iteration method.
+    
+    The update equation is:
+        c_{i,j}^{k+1} = (omega/4) * (c_{i+1,j}^{k} + c_{i,j+1}^{k} + c_{i,j+1}^{k} + (1 - omega) c_{i,j}^{k})
+    
+    Parameters:
+        N (int): Grid size.
+        tol (float): Convergence tolerance.
+        max_iters (int): Maximum number of iterations.
+        omega (float): Relaxation factor.
+
+    Returns:
+        int: Number of iterations required to reach convergence.
+    """
+    N, tol, max_iters, omega, object_grid= params
+    # grid initialisation
+    c = initialize_grid(N)
+
+    iter = 0
+    delta = float('inf')
+
+    while delta > tol and iter < max_iters:
+        delta = 0
+
+        for i in range(0, N):  # periodic in x
+            for j in range(1, N-1):  # fixed in y
+                
+                # if an grid point lies within the object 
+                if object_grid is not None and object_grid[(i, j)]:
+                    c_next = 0
+                    continue
+
+                # periodic boundary conditions
+                west = c[i - 1, j] if i > 0 else c[N - 1, j]
+                east = c[i + 1, j] if i < N - 1 else c[0, j]
+                south = c[i, j - 1] if j > 0 else 0
+                north = c[i, j + 1] if j < N - 1 else 1
+                
                 # SOR update equation
                 c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[i, j]
 

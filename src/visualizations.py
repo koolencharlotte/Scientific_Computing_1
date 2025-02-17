@@ -5,10 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import src.solutions as solutions
 from matplotlib.animation import FuncAnimation
+import matplotlib.colors as mcolors 
 
-# from .solutions import initialize_grid, update
-
-
+# 1B
 def visualization_1b(overall_solutions, xs):
     fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
 
@@ -28,22 +27,17 @@ def visualization_1b(overall_solutions, xs):
     plt.show()
 
 
+#1C
 def animate_1c(L, N, c, deltat):
 
     fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
-    # ax.set_title(f"Wave Time-stepping Approximation (frame: 1)")
-    # functions = [
-    # r"$\sin(2\pi x)$",
-    # r"$\sin(5\pi x)$",
-    # r"$\sin(5\pi x) \text{ if } \frac{1}{5} < x < \frac{2}{5}, \text{ else } 0$"
-    # ]
+
     fig.suptitle("Wave Time-Stepping Animation")
     all_soltjes = []
     for j in range(3):
         soltjes, xs, deltax = solutions.initialize_wave(j+1, L, N)
         all_soltjes.append(soltjes)
         axs[j].plot(xs, all_soltjes[j][1]) 
-        # axs[j].set_title(functions[j])
         axs[j].set_title('i'*(j+1))
         axs[j].set_xlabel("x")
    
@@ -244,3 +238,19 @@ def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
     plt.grid(True)
     plt.savefig("plots/fig_1jb.png", dpi=300, bbox_inches="tight")
     plt.show()
+
+# 1K
+def visualize_object_grid(obj_grids, sizes):
+    fig, axs = plt.subplots(2, 2, figsize=(3.1, 3.8))
+    cmap = mcolors.ListedColormap(["lightblue", "black"])  # Define custom colormap
+    axs = axs.flatten()
+    for i in range(4):
+        axs[i].imshow(obj_grids[i][0], cmap=cmap)  # Display grid
+        axs[i].set_xticks([])  # Remove x-axis ticks
+        axs[i].set_yticks([])  # Remove y-axis ticks
+        axs[i].grid(False)  # Remove grid lines
+        axs[i].set_title(sizes[i])
+    plt.suptitle(f"Object Grids ({len(obj_grids[0][0])}x{len(obj_grids[0][1])})")
+    plt.tight_layout()
+    plt.savefig("plots/object_layout.png", dpi=300)
+    plt.show()  # Display the plot
