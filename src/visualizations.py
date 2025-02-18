@@ -191,10 +191,21 @@ def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
 
 
 def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor, colors):
+    """
+    Visualizes the convergence measure vs. the number of iterations for Jacobi, Gauss-Seidel, 
+    and SOR methods across different values of p.
+
+    Parameters:
+        p_values (list): The p-values to be plotted on the x-axis.
+        iterations_jacobi (list): Number of iterations for the Jacobi method.
+        iterations_gauss_seidel (list): Number of iterations for the Gauss-Seidel method.
+        iterations_sor (dict): Number of iterations for different values of omega in the SOR method.
+        colors (list): List of colors to use for each method's plot.
+    """
 
     plt.figure(figsize=(5.3, 2.5))
     
-    linestyles = ['dotted', 'dashed', 'dashdot']
+    linestyles = ['dotted', 'dashed', 'dashdot', 'solid']
     num_styles = len(linestyles)
 
     plt.plot(p_values, iterations_jacobi, color=colors[0], label="Jacobi")
@@ -203,7 +214,6 @@ def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, itera
     for i, (omega, sor_iterations) in enumerate(iterations_sor.items()):
         plt.plot(p_values, sor_iterations, label=f"SOR (ω={omega})", color=colors[2], linestyle=linestyles[i % num_styles])
 
-    # plt.plot(p_values, iterations_sor, color=colors[2], label="Successive Over Relaxation")
     plt.xlabel(r'$p$', fontsize=14)
     plt.ylabel('Iterations', fontsize=14)
     plt.xticks(fontsize=12)
@@ -214,12 +224,19 @@ def visualization_1i(p_values, iterations_jacobi, iterations_gauss_seidel, itera
     plt.savefig("plots/fig_1i.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-# 1ja
 def visualization_1j_omega_iters(iters_N, omega_range, colors):
+    """
+    Visualizes the convergence speed of the SOR method across different omega values for varying grid sizes.
+
+    Parameters:
+        iters_N (dict): A dictionary where keys are grid sizes (N) and values are lists of iterations.
+        omega_range (list): List of omega values used for the SOR method.
+        colors (list): List of colors to use for each method's plot.
+    """
 
     plt.figure(figsize=(5.3, 3.6))
 
-    linestyles = ['dotted', 'dashed', 'dashdot']
+    linestyles = ['dotted', 'dashed', 'dashdot', 'solid']
     num_styles = len(linestyles)
 
     for i, (N, iters) in enumerate(iters_N.items()):
@@ -234,8 +251,15 @@ def visualization_1j_omega_iters(iters_N, omega_range, colors):
     plt.savefig("plots/fig_1ja.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-# 1jb
 def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
+    """
+    Visualizes the relationship between the optimal omega and grid size N for the SOR method.
+
+    Parameters:
+        N_values (list): List of grid sizes (N) plotted on the x-axis.
+        optimal_omegas (list): List of optimal omega values for each grid size.
+        colors (list): List of colors to use for the plot.
+    """
 
     plt.figure(figsize=(5.3, 2.5))
     plt.plot(N_values, optimal_omegas, marker='o', linestyle='-', color=colors[2])
