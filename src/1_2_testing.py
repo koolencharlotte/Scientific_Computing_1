@@ -216,6 +216,73 @@ def run_simulation_with_animation():
 
         return sum_val
 
+    def plot_with_error(y, solutions, times, D):
+        """
+        Funcion comparing analytical solution to numerical solution.
+        Plotting points for numerical solution and line for analytical soltution
+        """
+        nx = 100
+        y_analytic = np.linspace(0.0, 1.0, nx)
+
+        # plt.figure(figsize=(4.5, 3))
+
+        fig1, ax1 = plt.subplots(figsize=(4.5, 3))
+        fig2, ax2 = plt.subplots(figsize=(4.5, 3))
+        colors = ["orange", "blue", "green", "purple", "brown"]
+
+        for i, t_val in enumerate(times):
+            # Analytical
+            c_analytical = [analytical_solution(yy, t_val, D=D) for yy in y_analytic]
+            ax1.plot(
+                y_analytic,
+                c_analytical,
+                color=colors[i],
+                linewidth=0.8,
+                label=f"t={t_val:.3g}",
+            )
+
+            c_analytical = np.array(c_analytical)
+
+            # mean of the row (should theoretically all be the same)
+            c2D = solutions[i]
+            c_first = c2D[:, 0]
+            c_first = np.array(c_first)
+
+            # Absolute error
+            pointwise_diff = np.abs(c_first - c_analytical)
+
+            # slice array to avoid clutteredness
+            ax1.plot(y[::2], c_first[::2], "o", color=colors[i], markersize=2)
+
+            ax2.plot(
+                y[::2],
+                pointwise_diff[::2],
+                "o",
+                label=f"t={t_val}",
+                color=colors[i],
+                markersize=2,
+            )
+
+        ax1.set_xlabel("y (Position)")
+        ax1.set_ylabel("Concentration c(y, t)")
+        ax1.legend()
+        ax1.set_title("Diffusion Simulation vs Analytical Solution")
+        ax1.grid(True)
+        fig1.tight_layout()
+        # fig1.savefig("plots/diffusion_analytical.png", dpi=300, bbox_inches="tight")
+
+        ax2.set_xlabel("y (Position)")
+        ax2.set_ylabel("Absolute error")
+        ax2.legend()
+        ax2.set_title("Error Simulation and Analytical Solution")
+        ax2.grid(True)
+        fig2.tight_layout()
+        # fig2.savefig(
+        #     "plots/diffusion_analytical_error.png", dpi=300, bbox_inches="tight"
+        # )
+
+        plt.show()
+
     def plot_analytical_solution(y, solutions, times, D):
         nx = 100
         y_analytic = np.linspace(0.0, 1.0, nx)
@@ -256,11 +323,11 @@ def run_simulation_with_animation():
     y_values = np.linspace(0, 1, N)
 
     # Plot simulation results vs analytical solution
-    # plot_analytical_solution(y_values, all_c, times, D)
-    animate_2f(update, c, num_steps, N, gamma, dt)
+    plot_with_error(y_values, all_c, times, D)
+    # animate_2f(update, c, num_steps, N, gamma, dt)
 
 
-# run_simulation_without_animation()
+#   run_simulation_without_animation()
 
 
 def plot_five_states():
