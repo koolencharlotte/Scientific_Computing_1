@@ -242,7 +242,7 @@ def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
 # 1K
 def visualize_object_grid(obj_grids, sizes):
     fig, axs = plt.subplots(2, 2, figsize=(3.1, 3.8))
-    cmap = mcolors.ListedColormap(["lightblue", "black"])  # Define custom colormap
+    cmap = mcolors.ListedColormap(["lightgrey", "black"])  # Define custom colormap
     axs = axs.flatten()
     for i in range(4):
         axs[i].imshow(obj_grids[i][0], cmap=cmap)  # Display grid
@@ -254,3 +254,77 @@ def visualize_object_grid(obj_grids, sizes):
     plt.tight_layout()
     plt.savefig("plots/object_layout.png", dpi=300)
     plt.show()  # Display the plot
+
+
+def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measure_omega, config_labels, sizes, colors):
+    """
+    Visualizes the convergence of an object grid for different grid sizes and omega values.
+
+    Generates a figure with two subplots:
+    - The first shows mean iterations vs. grid size.
+    - The second shows mean iterations vs. omega values.
+    Variance is displayed as a shaded region.
+
+    Parameters:
+    -----------
+    all_grids, all_grids_omega : dict
+        Mapping of grid sizes and omega values to mean/variance data.
+    null_measure, null_measure_omega : list
+        Reference values plotted as dashed lines.
+    config_labels : list of str
+        Labels for different object configurations.
+    sizes : list of str
+        Legend labels for configurations.
+    colors : list of str
+        Colors for each configuration.
+    """
+   
+    fig, axs = plt.subplots(2, 1, figsize=(4, 5.5))
+
+    # incase iterated through omega: grid represent different omega values
+    grids = sorted(all_grids.keys())  
+    omegas = sorted(all_grids_omega.keys())
+    grid_om = [all_grids, all_grids_omega]
+
+    keyvals = [grids, omegas]
+    # Iterate over each object configuration and plot a separate line
+    for i, config_label in enumerate(config_labels):
+
+        for j in range(2):
+            means = []
+            vartjes = []
+            
+            # loop over the different experiments and access mean and variance
+            for grid_size in keyvals[j]:
+                config_data = grid_om[j][grid_size]  # Get the dictionary for this grid size
+                means.append(config_data[config_label][0])  # Mean value
+                vartjes.append(config_data[config_label][1])  # Variance value
+    
+            # Plot line for this configuration
+            axs[j].plot(keyvals[j], means, label=f"{sizes[i]}", marker="o", color=colors[i])
+
+            # Plot variance as a shaded region
+            axs[j].fill_between(keyvals[j], 
+                            np.array(means) - np.array(np.sqrt(vartjes)), 
+                            np.array(means) + np.array(np.sqrt(vartjes)), 
+                            alpha=0.2, color=colors[i])
+
+    # Plot null measure for reference
+    axs[0].plot(grids, null_measure, '--', label=f"{sizes[-1]}", color="black")
+    axs[1].plot(omegas, null_measure_omega, '--', label=f"{sizes[-1]}", color="black")
+    axs[0].set_xlabel("Grid Size")
+    axs[1].set_xlabel(r"$\omega$")
+
+    axs[0].set_title("For Different Grid-Sizes")
+    axs[1].set_title(r"For Different $\omega$ Values")
+
+    # Labels and legend
+
+    axs[0].set_ylabel("Iterations")
+    axs[1].set_ylabel("Iterations")
+
+    axs[0].legend()
+    plt.suptitle("Convergence on Object Grid", fontsize= 14)
+    plt.tight_layout()
+    plt.savefig("plots/questionK.png", dpi=300)
+    plt.show()
