@@ -514,9 +514,9 @@ def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measu
     axs[1].plot(omegas, null_measure_omega, '--', label=f"{sizes[-1]}", color="black")
     axs[0].set_xlabel("Grid Size")
     axs[1].set_xlabel(r"$\omega$")
-
-    axs[0].set_title("For Different Grid-Sizes")
-    axs[1].set_title(r"For Different $\omega$ Values")
+    
+    axs[0].set_title(r"For Different Grid-Sizes ($\omega$ = 1.9)" )
+    axs[1].set_title(r"For Different $\omega$ Values (50x50)")
 
     # Labels and legend
 
