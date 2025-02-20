@@ -6,36 +6,93 @@ import numpy as np
 import src.solutions as solutions
 from matplotlib.animation import FuncAnimation
 import matplotlib.colors as mcolors 
-
+import matplotlib.cm as cm
 # 1B
-def visualization_1b(overall_solutions, xs):
-    fig, axs = plt.subplots(1, 3, figsize=(5.3, 2.5), sharey=True)
+
+def visualization_1b(overall_solutions, xs, iterations, deltat):
+    """
+    Plots wave time-stepping approximations with color-coded lines indicating time progression.
+
+    Parameters:
+    -----------
+    overall_solutions : list of lists
+        Contains solution values for each timestep.
+    xs : ndarray
+        Spatial grid points.
+    iterations : int
+        Number of timesteps.
+    deltat : float
+        Time step size.
+
+
+    """
+
+    max_time = iterations * deltat
+    num_lines = len(overall_solutions[0])  
+
+    # Normalize time values for colormap
+    norm = mcolors.Normalize(vmin=0, vmax=max_time)
+    cmap = cm.viridis # Choose a colormap
+    sm = cm.ScalarMappable(cmap=cmap, norm=norm)  # For colorbar
+
+    fig, axs = plt.subplots(1, 3, figsize=(4.8, 2.8), sharey=True)
 
     for j in range(len(overall_solutions)):
-        for k in range(len(overall_solutions[j])):
-            axs[j].plot(xs, overall_solutions[j][k], linewidth=0.9)
+        for k in range(num_lines):
+            time_val = k * (max_time / num_lines)  # Assign time to each line
+            axs[j].plot(xs, overall_solutions[j][k], linewidth=0.9, color=cmap(norm(time_val)))
+
         axs[j].set_xlabel("x")
         axs[j].set_title("i" * (j + 1))
 
     axs[0].set_ylabel(r"$\Psi^n$", labelpad=1)
     axs[0].yaxis.set_label_coords(-0.22, 0.5)
 
+    # Adding horizontal colorbar below the subplots
+    cbar_ax = fig.add_axes([0.13, 0.07, 0.82, 0.03]) 
+    cbar = plt.colorbar(sm, cax=cbar_ax, orientation='horizontal')
+    cbar.set_label("Time (S)")
+
     fig.suptitle("Wave Time-stepping Approximation")
-    plt.tight_layout()
-    plt.subplots_adjust(wspace=0.08, top=0.8)
+    plt.tight_layout() 
+    plt.subplots_adjust(wspace=0.08, top=0.8, bottom=0.27)  
+
     plt.savefig("plots/fig_1B.png", dpi=300)
     plt.show()
 
-
 #1C
 def animate_1c(L, N, c, deltat):
+    """
+    Generates an animated visualization of wave propagation using three different 
+    initial wave functions. The animation updates the wave solutions over time 
+    based on a finite difference time-stepping method.
+
+    Parameters:
+    -----------
+    L : float
+        Length of the spatial domain.
+    N : int
+        Number of spatial grid points.
+    c : float
+        Wave speed.
+    deltat : float
+        Time step size.
+
+    Returns:
+    --------
+    animation
+    """ 
 
     fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
 
     fig.suptitle("Wave Time-Stepping Animation")
     all_soltjes = []
+
+    # iterate over the three functions and initialize wave
     for j in range(3):
         soltjes, xs, deltax = solutions.initialize_wave(j + 1, L, N)
+
+        # compute solutions of initial wave and save them for visualization
         all_soltjes.append(soltjes)
         axs[j].plot(xs, all_soltjes[j][1]) 
         axs[j].set_title('i'*(j+1))
@@ -43,30 +100,46 @@ def animate_1c(L, N, c, deltat):
 
     axs[0].set_ylabel(r"$\Psi$")
 
-    plt.tight_layout()  # Prevent overlap
-    fig.subplots_adjust(top=0.8)  # Move suptitle higher
+    plt.tight_layout()  
+    fig.subplots_adjust(top=0.8)  
+
+    # pause to visualize first frame
     plt.pause(1)
 
     def animate(frame):
         nonlocal all_soltjes
+
+        # for every inital function
         for i in range(3):
+            
+            # retrieve previous solution for this function
             soltjes = all_soltjes[i]
-            axs[i].clear()  # Clear the previous frame
-            axs[i].set_xlim(0, L)  # Set x-axis limits
-            axs[i].set_ylim(-1, 1)  # Set y-axis limits
-            # axs[i].set_title(functions[i])
+
+            # configure layout for each subplot
+            axs[i].clear()  
+            axs[i].set_xlim(0, L)  
+            axs[i].set_ylim(-1, 1) 
             axs[i].set_title("i" * (i + 1))
+
+            # iterate over 10 iterations before visualization (this has no visual effect)
             for _ in range(10):
+
+                # compute solutions for this timestep
                 soltjes = solutions.wave_step_function(soltjes, c, xs, deltax, deltat)
+
+            # plot solution
             all_soltjes[i] = soltjes
             axs[i].plot(xs, soltjes[1])
             axs[i].set_xlabel("x")
 
         axs[0].set_ylabel(r"$\Psi$")
 
+    # generate animation
     animation = FuncAnimation(fig, animate, frames=300, interval=1)
     animation.save("plots/network_animation10.gif", fps=50, writer="ffmpeg")
-    plt.show()
+    plt.close(fig)
+
+    return animation
 
 
 def plot_analytical_solution_with_error(y, solution_vals, times, D):
@@ -319,15 +392,31 @@ def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
 
 # 1K
 def visualize_object_grid(obj_grids, sizes):
+    """
+    Visualizes a 2x2 grid of object configurations using binary occupancy maps.
+
+    Parameters:
+    -----------
+    obj_grids : list of list of ndarray
+        A list containing four object grid configurations (2D).
+    
+    sizes : list of str
+        A list of four labels corresponding to the object configurations.
+    """
     fig, axs = plt.subplots(2, 2, figsize=(3.1, 3.8))
-    cmap = mcolors.ListedColormap(["lightgrey", "black"])  # Define custom colormap
+
+    # grey for spaces not occupied and black for occupied spaces
+    cmap = mcolors.ListedColormap(["lightgrey", "black"])  
     axs = axs.flatten()
+
+    # visualize grid for every object configuraiton
     for i in range(4):
         axs[i].imshow(obj_grids[i][0], cmap=cmap)  # Display grid
         axs[i].set_xticks([])  # Remove x-axis ticks
         axs[i].set_yticks([])  # Remove y-axis ticks
         axs[i].grid(False)  # Remove grid lines
         axs[i].set_title(sizes[i])
+    
     plt.suptitle(f"Object Grids ({len(obj_grids[0][0])}x{len(obj_grids[0][1])})")
     plt.tight_layout()
     plt.savefig("plots/object_layout.png", dpi=300)
