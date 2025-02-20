@@ -224,6 +224,40 @@ def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
     plt.close(fig)
     return animation
 
+def visualization_1h(c_jacobi_2d, c_gs_2d, c_sor_2d, N):
+    """
+    Visualizes the absolute error betweeen the solution of the iterative methods: Jacobi, Gauss-Seidel,
+    and SOR methods with the analytical solution for a grid size of 50.
+    
+    Parameters:
+        c_jacobi_2d: 2D array representing the solution using the Jacobi method.
+        c_gs_2d: 2D array representing the solution using the Gauss-Seidel method.
+        c_sor_2d: 2D array representing the solution using the SOR method.
+        N (int): The number of grid points used in the simulation.
+    """
+
+    y_analytic = np.linspace(0, 1, N)
+
+    c_jacobi_1d = c_jacobi_2d[:,0]
+    c_gs_1d = c_gs_2d[:,0]
+    c_sor_1d = c_sor_2d[:,0]
+
+    error_jacobi = np.abs(c_jacobi_1d - y_analytic)
+    error_gs = np.abs(c_gs_1d - y_analytic)
+    error_sor = np.abs(c_sor_1d - y_analytic)
+
+    
+    plt.figure(figsize=(6.7, 3.5))
+    plt.plot(y_analytic, error_jacobi, "o", markersize=2, label="Jacobi")
+    plt.plot(y_analytic, error_gs, "o", markersize=2, label="Gauss-Seidel")
+    plt.plot(y_analytic, error_sor, "o", markersize=2, label="SOR")
+    plt.xlabel("y (Position)")
+    plt.ylabel("Absolute error")
+    plt.title("Error Simulation and Analytical Solution")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("plots/fig_1h.png", dpi=300, bbox_inches="tight")
+    plt.show()
 
 def visualization_1i(
     p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor, colors
@@ -257,14 +291,13 @@ def visualization_1i(
             linestyle=linestyles[i % num_styles],
         )
 
-    # plt.plot(p_values, iterations_sor, color=colors[2], label="Successive Over Relaxation")
     plt.xlabel(r"$p$", fontsize=14)
     plt.ylabel("Iterations", fontsize=14)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.legend(fontsize=10, loc="upper left")
     plt.grid(True)
-    plt.title("Convergence Measure vs. Iterations")
+    plt.title("Convergence Measure vs Iterations")
     plt.savefig("plots/fig_1i.png", dpi=300, bbox_inches="tight")
     plt.show()
 
@@ -296,8 +329,8 @@ def visualization_1j_omega_iters(iters_N, omega_range, colors):
     plt.xlabel(r"$\omega$", fontsize=14)
     plt.yscale("log")
     plt.ylabel("Iterations", fontsize=14)
-    plt.legend(fontsize=10, loc="upper left")
-    plt.title("SOR Convergence Speed vs. ω", fontsize=14)
+    plt.legend(fontsize=10, loc="upper left", ncol=2)
+    plt.title("SOR Convergence Speed vs ω", fontsize=14)
     plt.grid(True)
     plt.savefig("plots/fig_1ja.png", dpi=300, bbox_inches="tight")
     plt.show()
@@ -317,7 +350,7 @@ def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
     plt.plot(N_values, optimal_omegas, marker="o", linestyle="-", color=colors[2])
     plt.xlabel("Grid Size N", fontsize=14)
     plt.ylabel("Optimal ω", fontsize=14)
-    plt.title("Optimal ω vs. Grid Size N", fontsize=14)
+    plt.title("Optimal ω vs Grid Size N", fontsize=14)
     plt.grid(True)
     plt.savefig("plots/fig_1jb.png", dpi=300, bbox_inches="tight")
     plt.show()

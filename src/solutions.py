@@ -415,6 +415,7 @@ def sequential_jacobi(N, tol, max_iters):
 
     Returns:
         int: Number of iterations required to reach convergence.
+        numpy.ndarray: Final grid after iterations.
     """
 
     # grid initialisation
@@ -427,26 +428,13 @@ def sequential_jacobi(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(0, N):  # periodic in x
-            for j in range(1, N - 1):  # fixed in y
-                # add
-                # if (c_old is a source) c_next = cL
-                # else if (c_old is a sink) c_next = c0
+        for i in range(1, N-1):
+            for j in range(0, N):
 
-                # periodic boundaries
-                if i == 0:
-                    west = c_old[N - 1, j]
-                else:
-                    west = c_old[i - 1, j]
-
-                if i == N - 1:
-                    east = c_old[0, j]
-                else:
-                    east = c_old[i + 1, j]
-
-                # fixed boundaries
-                south = 0 if j == 0 else c_old[i, j - 1]
-                north = 1 if j == N - 1 else c_old[i, j + 1]
+                south = c_old[i - 1, j] if i > 0 else 0
+                north = c_old[i + 1, j] if i < N - 1 else 1
+                west = c_old[i, j - 1] if j > 0 else c_old[i, N-1]
+                east = c_old[i, j + 1] if j < N - 1 else c_old[i,0]
 
                 # Jacobi update equation
                 c_next[i, j] = 0.25 * (west + east + south + north)
@@ -454,11 +442,12 @@ def sequential_jacobi(N, tol, max_iters):
                 delta = max(delta, abs(c_next[i, j] - c_old[i, j]))
 
         # swap matrices for next iter
-        c_old[:], c_next[:] = c_next, c_old
+        c_old = np.copy(c_next)
+        c_next = initialize_grid(N)
 
         iter += 1
 
-    return iter
+    return iter, c_old
 
 
 def sequential_gauss_seidel(N, tol, max_iters):
@@ -475,6 +464,7 @@ def sequential_gauss_seidel(N, tol, max_iters):
 
     Returns:
         int: Number of iterations required to reach convergence.
+        numpy.ndarray: Final grid after iterations.
     """
 
     # grid initialisation
@@ -486,13 +476,13 @@ def sequential_gauss_seidel(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(0, N):  # periodic in x
-            for j in range(1, N - 1):  # fixed in y
-                # periodic boundary conditions
-                west = c[i - 1, j] if i > 0 else c[N - 1, j]
-                east = c[i + 1, j] if i < N - 1 else c[0, j]
-                south = c[i, j - 1] if j > 0 else 0
-                north = c[i, j + 1] if j < N - 1 else 1
+        for i in range(1, N-1):
+            for j in range(0, N):
+
+                south = c[i - 1, j] if i > 0 else 0
+                north = c[i + 1, j] if i < N - 1 else 1
+                west = c[i, j - 1] if j > 0 else c[i, N-1]
+                east = c[i, j + 1] if j < N - 1 else c[i,0]
 
                 # Gauss-Seidel update equation
                 c_next = 0.25 * (west + east + south + north)
@@ -502,7 +492,7 @@ def sequential_gauss_seidel(N, tol, max_iters):
 
         iter += 1
 
-    return iter
+    return iter, c
 
 
 def sequential_SOR(N, tol, max_iters, omega):
@@ -520,6 +510,7 @@ def sequential_SOR(N, tol, max_iters, omega):
 
     Returns:
         int: Number of iterations required to reach convergence.
+        numpy.ndarray: Final grid after iterations. 
     """
 
     # grid initialisation
@@ -531,13 +522,13 @@ def sequential_SOR(N, tol, max_iters, omega):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(0, N):  # periodic in x
-            for j in range(1, N - 1):  # fixed in y
-                # periodic boundary conditions
-                west = c[i - 1, j] if i > 0 else c[N - 1, j]
-                east = c[i + 1, j] if i < N - 1 else c[0, j]
-                south = c[i, j - 1] if j > 0 else 0
-                north = c[i, j + 1] if j < N - 1 else 1
+        for i in range(1, N-1):
+            for j in range(N):
+
+                south = c[i - 1, j] if i > 0 else 0
+                north = c[i + 1, j] if i < N - 1 else 1
+                west = c[i, j - 1] if j > 0 else c[i, N-1]
+                east = c[i, j + 1] if j < N - 1 else c[i,0]
 
                 # SOR update equation
                 c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[
@@ -549,4 +540,4 @@ def sequential_SOR(N, tol, max_iters, omega):
 
         iter += 1
 
-    return iter
+    return iter, c
