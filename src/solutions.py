@@ -196,42 +196,31 @@ def apply_periodic_boundary(grid):
 
 def update(grid, num_steps, N, gamma, dt, comparison=False):
     """
-    Evolve a 2D grid using an explicit finite difference scheme to simulate diffusion.
+    Evolves a 2D grid using an explicit finite difference scheme to simulate diffusion.
 
-    This function updates the grid over a specified number of time steps using a finite
-    difference approximation of the 2D diffusion equation with periodic boundary conditions.
-    At selected time steps, snapshots of the grid are saved along with their corresponding
-    simulation times.
+    The update follows a finite difference approximation of the 2D diffusion equation 
+    with periodic boundary conditions. Grid snapshots are saved at selected time steps.
 
-    Parameters
-    ----------
-    grid : numpy.ndarray
-        A 2D array representing the initial concentration distribution.
-    num_steps : int
-        The total number of time steps to simulate.
-    N : int
-        The number of grid points along each dimension (assumes a square grid of size N x N).
-    gamma : float
-        The diffusion coefficient factor used in the finite difference update.
-    dt : float
-        The time increment for each simulation step.
-    comparison : bool, optional
-        If True, the function saves grid snapshots at specific key times (0.001, 0.01, 0.1, 1.0).
-        If False, snapshots are saved every 100 steps. Default is False.
+    Parameters:
+        grid (numpy.ndarray): Initial 2D concentration distribution.
+        num_steps (int): Total number of time steps to simulate.
+        N (int): Grid size (assumes an N x N grid).
+        gamma (float): Diffusion coefficient factor.
+        dt (float): Time increment per simulation step.
+        comparison (bool, optional): 
+            If True, saves grid snapshots at key times (0.001, 0.01, 0.1, 1.0).
+            Otherwise, saves snapshots every 100 steps. Default is False.
 
-    Returns
-    -------
-    all_grids : list of numpy.ndarray
-        A list containing copies of the grid at the selected time steps.
-    times : list of float
-        A list of simulation times corresponding to each saved grid snapshot.
+    Returns:
+        list of numpy.ndarray: Grid snapshots at selected time steps.
+        list of float: Corresponding simulation times.
 
-    Side Effects
-    ------------
-    Writes a pickle file containing the tuple (all_grids, times) to disk. The file is saved
-    to "data/2D_diffusion_comparison.pkl" if `comparison` is True, and "data/2D_diffusion.pkl"
-    otherwise.
+    Side Effects:
+        Writes a pickle file containing (all_grids, times) to disk.
+        - "data/2D_diffusion_comparison.pkl" if `comparison` is True.
+        - "data/2D_diffusion.pkl" otherwise.
     """
+
 
     all_grids = [grid.copy()]
     t = 0
@@ -239,12 +228,18 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
 
     time_appended = set()
 
+    # the times we're experimenting with
     key_times = {0.001, 0.01, 0.1, 1.0}
 
+    # iterate through all the steps
     for n in range(num_steps):
         c_new = grid.copy()
+
+        # iterate through over grid
         for i in range(1, N - 1):
             for j in range(1, N - 1):
+
+                # do the update of the cell
                 c_new[i, j] = grid[i, j] + gamma * (
                     grid[i + 1, j]
                     + grid[i - 1, j]
@@ -253,8 +248,10 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
                     - 4 * grid[i, j]
                 )
 
+        # makes sure the boundary wraps around
         apply_periodic_boundary(c_new)
 
+        # update old grid
         grid[:] = c_new[:]
 
         t = round(t + dt, 6)
@@ -271,6 +268,7 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
                 all_grids.append(grid.copy())
                 times.append(t)
 
+    # set path 
     if comparison:
         path = "data/2D_diffusion_comparison.pkl"
     else:
@@ -341,43 +339,27 @@ def run_simulation_without_animation():
 
 def check_and_parse_data(data_file, newdata, values):
     """
-    Load simulation data from a file or generate new data by running a simulation.
+    Loads simulation data from a file or generates new data by running a simulation.
 
-    This function first checks for the existence of a "data" directory. It then unpacks the
-    simulation parameters from the provided `values` tuple. Depending on the `newdata` flag,
-    the function either loads existing simulation data from the specified `data_file` or runs
-    a new simulation using the `update` function with `comparison=True`.
+    The function checks for the existence of a "data" directory, unpacks simulation parameters 
+    from `values`, and either loads existing data from `data_file` or runs a new simulation using 
+    the `update` function with `comparison=True`.
 
-    Parameters
-    ----------
-    values : tuple
-        A tuple containing the simulation parameters in the following order:
-        (c, num_steps, N, gamma, dt), where:
-            c : numpy.ndarray
-                The initial grid configuration.
-            num_steps : int
-                The number of simulation steps.
-            N : int
-                The grid size (assumes a square grid of dimensions N x N).
-            gamma : float
-                The diffusion coefficient factor used in the simulation.
-            dt : float
-                The time step size.
-    newdata : bool
-        Flag indicating whether to generate new simulation data. If False, the function
-        attempts to load existing data from the file specified by `data_file`.
-    data_file : str
-        The name of the file (located in the "data" directory) from which to load the
-        simulation data if `newdata` is False.
+    Parameters:
+        values (tuple): Simulation parameters in the order:
+            - c (numpy.ndarray): Initial grid configuration.
+            - num_steps (int): Number of simulation steps.
+            - N (int): Grid size (assumes an N x N grid).
+            - gamma (float): Diffusion coefficient factor.
+            - dt (float): Time step size.
+        newdata (bool): If True, generates new data; otherwise, loads from `data_file`.
+        data_file (str): Path to the simulation data file.
 
-    Returns
-    -------
-    all_c : list of numpy.ndarray
-        A list of grid snapshots from the simulation.
-    times : list of float
-        A list of times corresponding to each grid snapshot.
-
+    Returns:
+        list of numpy.ndarray: Grid snapshots from the simulation.
+        list of float: Time points corresponding to each snapshot.
     """
+
 
     # check if main folder exists
     assert os.path.exists("data"), (
@@ -417,6 +399,7 @@ def sequential_jacobi(N, tol, max_iters):
         int: Number of iterations required to reach convergence.
         numpy.ndarray: Final grid after iterations.
     """
+    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
 
     # grid initialisation
     c_old = initialize_grid(N)
@@ -468,17 +451,21 @@ def sequential_gauss_seidel(N, tol, max_iters):
     """
 
     # grid initialisation
+    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
     c = initialize_grid(N)
 
     iter = 0
     delta = float("inf")
 
+    # while not converged
     while delta > tol and iter < max_iters:
         delta = 0
 
+        # loop over values in the grid (except for y=0, y=N)
         for i in range(1, N-1):
             for j in range(0, N):
 
+                # retrieve all necessary values (also regarding wrap-around)
                 south = c[i - 1, j] if i > 0 else 0
                 north = c[i + 1, j] if i < N - 1 else 1
                 west = c[i, j - 1] if j > 0 else c[i, N-1]
@@ -487,6 +474,7 @@ def sequential_gauss_seidel(N, tol, max_iters):
                 # Gauss-Seidel update equation
                 c_next = 0.25 * (west + east + south + north)
 
+                # check for convergence
                 delta = max(delta, abs(c_next - c[i, j]))
                 c[i, j] = c_next
 
@@ -512,18 +500,23 @@ def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
         numpy.ndarray: Final grid after iterations. 
     """
 
+    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+
     # grid initialisation
     c = initialize_grid(N)
 
     iter = 0
     delta = float("inf")
 
+    # while not converged
     while delta > tol and iter < max_iters:
         delta = 0
 
+        # loop over all cells in the grid (except for y = 0, y=N)
         for i in range(1, N-1):
             for j in range(N):
 
+                # retrieve all necessary values (also regarding wrap-around)
                 south = c[i - 1, j] if i > 0 else 0
                 north = c[i + 1, j] if i < N - 1 else 1
                 west = c[i, j - 1] if j > 0 else c[i, N-1]
@@ -534,6 +527,7 @@ def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
                     i, j
                 ]
 
+                # check for convergence
                 delta = max(delta, abs(c_next - c[i, j]))
                 c[i, j] = c_next
 
@@ -543,7 +537,7 @@ def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
 
 def non_sequential_SOR(params):
     """
-    Solves using the Successive Over Relaxtion (SOR) iteration method.
+    Solves using the Successive Over Relaxtion (SOR) iteration method (suitable for parallel implementation)
     
     The update equation is:
         c_{i,j}^{k+1} = (omega/4) * (c_{i+1,j}^{k} + c_{i,j+1}^{k} + c_{i,j+1}^{k} + (1 - omega) c_{i,j}^{k})
@@ -558,15 +552,18 @@ def non_sequential_SOR(params):
         int: Number of iterations required to reach convergence.
     """
     N, tol, max_iters, omega, object_grid= params
+    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
     # grid initialisation
     c = initialize_grid(N)
 
     iter = 0
     delta = float('inf')
 
+    # while not converged
     while delta > tol and iter < max_iters:
         delta = 0
 
+        # loop over grid (except for y=0, y=N)
         for i in range(1, N-1):  # periodic in x
             for j in range(N):  # fixed in y
                 
@@ -584,6 +581,7 @@ def non_sequential_SOR(params):
                 # SOR update equation
                 c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[i, j]
 
+                # check for convergence
                 delta = max(delta, abs(c_next - c[i, j]))
                 c[i, j] = c_next
 
@@ -596,21 +594,16 @@ def place_objects(N, num_object, seed=31, size_object=4):
     Randomly places square objects on an NxN grid.
 
     Parameters:
-    -----------
-    N : int
-        Size of the grid (NxN).
-    num_object : int
-        Number of objects to place.
-    seed : int, optional (default=31)
-        Random seed for reproducibility.
-    size_object : int, optional (default=4)
-        Side length of each square object.
+        N (int): Grid size (N × N).
+        num_object (int): Number of objects to place.
+        seed (int, optional): Random seed for reproducibility (default=31).
+        size_object (int, optional): Side length of each square object (default=4).
 
     Returns:
-    --------
-    object_grid : ndarray
-        NxN grid with placed objects, where occupied cells are marked as 1.
+        numpy.ndarray: NxN grid with placed objects, where occupied cells are marked as 1.
     """
+
+
     object_grid = np.zeros((N,N))
     np.random.seed(seed)
     
@@ -645,33 +638,22 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
     Runs the Successive Over-Relaxation (SOR) method in parallel for different grid sizes or omega values.
 
     Parameters:
-    -----------
-    varying : list
-        Values over which to iterate (grid sizes or omega values).
-    N : int
-        Default grid size (overridden if varying `N`).
-    all_grids : dict
-        Mapping of grid sizes to different object configurations and their initial conditions.
-    num_grids : int
-        Number of grids per configuration.
-    max_iters : int
-        Maximum number of iterations allowed.
-    omegatje : float
-        Default omega relaxation factor (overridden if varying `O`).
-    tol : float
-        Convergence tolerance.
-    object configs: dict
-        Different object layouts on the grid. 
-    what_value : str, optional (default="N")
-        Determines whether `varying` represents grid sizes ("N") or omega values ("O").
+        varying (list): Values over which to iterate (grid sizes or omega values).
+        N (int): Default grid size (overridden if varying `N`).
+        all_grids (dict): Mapping of grid sizes to object configurations and initial conditions.
+        num_grids (int): Number of grids per configuration.
+        max_iters (int): Maximum number of iterations allowed.
+        omegatje (float): Default omega relaxation factor (overridden if varying `O`).
+        tol (float): Convergence tolerance.
+        object_configs (dict): Different object layouts on the grid.
+        what_value (str, optional): Determines whether `varying` represents grid sizes ("N") or omega values ("O") (default="N").
 
     Returns:
-    --------
-    all_results : dict
-        Dictionary mapping each grid size (or omega value) to the mean and variance of iterations required.
-    zeros_metric : list
-        Reference values from running SOR on an empty grid (no objects).
+        dict: Maps each grid size (or omega value) to the mean and variance of iterations required.
+        dict:  Maps each grid size (or omega value) to an example converged grid (with objects)
+        list: Reference values from running SOR on an empty grid (no objects).
     """
+
 
     all_results = dict()
     all_results_map = dict()
@@ -710,6 +692,7 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
                 itertjes = list(iter1)
                 soltjes = list(map2)
                 assert np.any(itertjes) < max_iters, f"maximum number of iterations for variables N:{ntje}, omega:{omega}, config{config} is reached, choose different omega"
+                
             # calculate mean and variance, save for every grid size and object configuration
             mean_config = np.mean(itertjes)
             var_config = np.var(itertjes)
@@ -729,12 +712,14 @@ def statistical_test_for_objects(object_configs, all_res, forwhat="O"):
     """
     Performs statistical tests on object configurations and writes results to a file.
 
+    This function analyzes different object configurations and evaluates their statistical 
+    properties based on the results obtained for various omega values.
+
     Parameters:
-    -----------
-    object_configs : list
-        List of object configurations.
-    all_res : dict
-        Dictionary containing results for different omega values.
+        object_configs (list): List of object configurations.
+        all_res (dict): Dictionary containing results for different omega values.
+        for_what: for "O" (varying omega experiments) or "N" (varying grid-size experiments)
+        
     """
 
     # Ensure the "data" folder exists
