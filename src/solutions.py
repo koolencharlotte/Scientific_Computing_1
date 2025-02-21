@@ -2,6 +2,7 @@ import os
 import pickle as pkl
 from scipy.stats import ttest_ind_from_stats
 
+from numba import njit, prange
 import numpy as np
 from math import erfc
 from multiprocessing import Pool
@@ -194,6 +195,8 @@ def apply_periodic_boundary(grid):
     grid[:, -1] = grid[:, 1]
 
 
+
+@njit(parallel=True)
 def update(grid, num_steps, N, gamma, dt, comparison=False):
     """
     Evolves a 2D grid using an explicit finite difference scheme to simulate diffusion.
@@ -235,21 +238,26 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
     for n in range(num_steps):
         c_new = grid.copy()
 
-        # iterate through over grid
-        for i in range(1, N - 1):
-            for j in range(1, N - 1):
+        # iterate through over grid (in parallel)
+        for i in prange(1, N - 1):
+            for j in range(N):
+                
+                south =  grid[i - 1, j] if i > 0 else 0
+                north =  grid[i + 1, j] if i < N - 1 else 1
+                west =  grid[i, j - 1] if j > 0 else grid[i, N-1]
+                east = grid[i, j + 1] if j < N - 1 else grid[i,0]
 
                 # do the update of the cell
                 c_new[i, j] = grid[i, j] + gamma * (
-                    grid[i + 1, j]
-                    + grid[i - 1, j]
-                    + grid[i, j + 1]
-                    + grid[i, j - 1]
+                    north
+                    + south
+                    + east
+                    + west
                     - 4 * grid[i, j]
                 )
 
         # makes sure the boundary wraps around
-        apply_periodic_boundary(c_new)
+        # apply_periodic_boundary(c_new)
 
         # update old grid
         grid[:] = c_new[:]
@@ -267,17 +275,6 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
             if n % 100 == 0:
                 all_grids.append(grid.copy())
                 times.append(t)
-
-    # set path 
-    if comparison:
-        path = "data/2D_diffusion_comparison.pkl"
-    else:
-        path = "data/2D_diffusion.pkl"
-
-    pkl.dump(
-        (all_grids, times),
-        open(path, "wb"),
-    )
 
     return all_grids, times
 
@@ -337,7 +334,13 @@ def run_simulation_without_animation():
     return all_grids, times
 
 
-def check_and_parse_data(data_file, newdata, values):
+
+def save_grids(all_grids, times, data_file, comparison):
+    path = f"data/comparison_{data_file}" if comparison else f"data/{data_file}"
+    with open(path, "wb") as f:
+        pkl.dump((all_grids, times), f)
+
+def check_and_parse_data(data_file, newdata, values, comp):
     """
     Loads simulation data from a file or generates new data by running a simulation.
 
@@ -376,8 +379,10 @@ def check_and_parse_data(data_file, newdata, values):
             raise ValueError(
                 f"the data {data_file} does not exist, choose an existing file"
             )
+    # create new data
     else:
-        all_c, times = update(c, num_steps, N, gamma, dt, comparison=True)
+        all_c, times = update(c, num_steps, N, gamma, dt, comp)
+        save_grids(all_c, times, data_file, comp)
 
     return all_c, times
 
@@ -692,7 +697,7 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
                 itertjes = list(iter1)
                 soltjes = list(map2)
                 assert np.any(itertjes) < max_iters, f"maximum number of iterations for variables N:{ntje}, omega:{omega}, config{config} is reached, choose different omega"
-                
+
             # calculate mean and variance, save for every grid size and object configuration
             mean_config = np.mean(itertjes)
             var_config = np.var(itertjes)
