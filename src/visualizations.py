@@ -502,9 +502,16 @@ def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measu
 
 def plot_converged_object_grid(all_c, iterate_through,config, which_one="N"):
     """
-    function plotting the 2D diffustion grid,
-    5 states for t = 0, 0.001, 0.01, 0.1, 1.0
-    """
+    Plots converged object grids for different experimental conditions.
+
+    Parameters:
+        all_c (dict): Dictionary mapping experiment values to diffusion grids.
+        iterate_through (list): Values over which the experiments are conducted (grid sizes or omega values).
+        config (int): Index of the object configuration to visualize.
+        which_one (str, optional): Specifies the experiment type:
+            - "N": Varying grid size (default).
+            - "O": Varying relaxation factor ω.
+   """
 
     assert len(all_c.keys()) == len(iterate_through), "Data provided and variables used for experimentation don't allign"
 
