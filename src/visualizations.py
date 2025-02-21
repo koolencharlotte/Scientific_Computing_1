@@ -203,7 +203,7 @@ def plot_five_states(all_c, times):
     """
 
     # plot setup
-    fig, axs = plt.subplots(2, 3, figsize=(5.8, 4.3), sharex=True, sharey=True)
+    fig, axs = plt.subplots(2, 3, figsize=(4.4, 3.4), sharex=True, sharey=True)
     fig.suptitle("2D Diffusion at Different t Values")
     axs = axs.flatten()
 
@@ -211,7 +211,7 @@ def plot_five_states(all_c, times):
     axs[-1].set_visible(False)
     for i in range(5):
         im = axs[i].imshow(
-            all_c[i], cmap="viridis", interpolation="nearest", origin="lower"
+            all_c[i], cmap="viridis", interpolation="nearest", origin="lower", extent=[0, 1, 0, 1]
         )
         axs[i].set_title(f"t = {times[i]}")
         if i > 1:
@@ -222,14 +222,13 @@ def plot_five_states(all_c, times):
     axs[0].set_ylabel("y")
     axs[3].set_ylabel("y")
 
-    cbar_ax = fig.add_axes([0.92, 0.09, 0.02, 0.75])  # [left, bottom, width, height]
+    cbar_ax = fig.add_axes([0.92, 0.09, 0.02, 0.7])  # [left, bottom, width, height]
     fig.colorbar(im, cax=cbar_ax, label="Concentration")
 
     plt.tight_layout(rect=[0, 0, 0.93, 1])
-    plt.subplots_adjust(wspace=0.05, hspace=0.2)
-    plt.savefig("plots/diffusion_snapshots.png", dpi=300)
+    plt.subplots_adjust(wspace=0.22, hspace=0.2)
+    plt.savefig("plots/diffusion_snapshots.png", dpi=300, bbox_inches="tight")
     plt.show()
-
 
 def plot_simulation_without_animation(grids, N):
     fig, ax = plt.subplots(figsize=(7, 7))
