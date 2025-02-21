@@ -589,7 +589,7 @@ def non_sequential_SOR(params):
 
         iter += 1
 
-    return iter
+    return iter, c
 
 def place_objects(N, num_object, seed=31, size_object=4):
     """
@@ -674,13 +674,13 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
     """
 
     all_results = dict()
+    all_results_map = dict()
     zeros_metric =[]
     
     ntje = N
     omega = omegatje
     # iterate over all grid-sizes
     for variable in varying:
-
         # determine what value we're iterating over
         if what_value == "N":
             ntje = variable
@@ -692,6 +692,7 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
             continue
         print(f"starting parallel implementation of SOR for grid size {ntje}x{ntje}, omega: {omega}")
         result_config = dict()
+        all_solution_map = dict()
         # loop over different object grid configurations (object sizes)
         for config in range(len(all_grids[ntje])):
             # loop over the number of grids per grid-setting (parallel implementation)
@@ -704,18 +705,24 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
             # parallelizaiton
             with Pool(PROCESSES) as pool:
                 assert PROCESSES < os.cpu_count(), f"Lower the number of processes {PROCESSES}"
-                itertjes = pool.map(non_sequential_SOR, pars)
+                all_sols = pool.map(non_sequential_SOR, pars)
+                iter1, map2 = zip(*all_sols)
+                itertjes = list(iter1)
+                soltjes = list(map2)
                 assert np.any(itertjes) < max_iters, f"maximum number of iterations for variables N:{ntje}, omega:{omega}, config{config} is reached, choose different omega"
             # calculate mean and variance, save for every grid size and object configuration
             mean_config = np.mean(itertjes)
             var_config = np.var(itertjes)
+            all_solution_map[object_configs[config]] = soltjes[0]
             result_config[object_configs[config]] = (mean_config, var_config)
+        all_results_map[variable] = all_solution_map
         all_results[variable] = result_config
     
         # a null-measure: with no objects on the grid
         pars= (ntje, tol, max_iters, omega, None)
-        zeros_metric.append(non_sequential_SOR(pars))
-    return all_results, zeros_metric
+        zero_sol, _  = sequential_SOR(ntje, tol, max_iters, omega, None)
+        zeros_metric.append(zero_sol)
+    return all_results, all_results_map, zeros_metric
 
 
 def statistical_test_for_objects(object_configs, all_res, forwhat="O"):

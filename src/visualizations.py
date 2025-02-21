@@ -14,17 +14,10 @@ def visualization_1b(overall_solutions, xs, iterations, deltat):
     Plots wave time-stepping approximations with color-coded lines indicating time progression.
 
     Parameters:
-    -----------
-    overall_solutions : list of lists
-        Contains solution values for each timestep.
-    xs : ndarray
-        Spatial grid points.
-    iterations : int
-        Number of timesteps.
-    deltat : float
-        Time step size.
-
-
+        overall_solutions (list of lists): Contains solution values for each timestep.
+        xs (ndarray): Spatial grid points.
+        iterations (int): Number of timesteps.
+        deltat (float): Time step size.
     """
 
     max_time = iterations * deltat
@@ -68,19 +61,11 @@ def animate_1c(L, N, c, deltat):
     based on a finite difference time-stepping method.
 
     Parameters:
-    -----------
-    L : float
-        Length of the spatial domain.
-    N : int
-        Number of spatial grid points.
-    c : float
-        Wave speed.
-    deltat : float
-        Time step size.
+        L  (float): Length of the spatial domain.
+        N (int): Number of spatial grid points.
+        c (float): Wave speed.
+        deltat (float):Time step size.
 
-    Returns:
-    --------
-    animation
     """ 
 
     fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
@@ -216,11 +201,6 @@ def plot_five_states(all_c, times):
     function plotting the 2D diffustion grid,
     5 states for t = 0, 0.001, 0.01, 0.1, 1.0
     """
-
-    # # read in/ generate data
-    # data_file = "2D_diffusion.pkl"
-    # create_new_data = False
-    # all_c, times = solutions.check_and_parse_data(data_file, create_new_data, parameters)
 
     # plot setup
     fig, axs = plt.subplots(2, 3, figsize=(5.8, 4.3), sharex=True, sharey=True)
@@ -429,12 +409,8 @@ def visualize_object_grid(obj_grids, sizes):
     Visualizes a 2x2 grid of object configurations using binary occupancy maps.
 
     Parameters:
-    -----------
-    obj_grids : list of list of ndarray
-        A list containing four object grid configurations (2D).
-    
-    sizes : list of str
-        A list of four labels corresponding to the object configurations.
+        obj_grids (list of list of ndarray): A list containing four object grid configurations (2D).
+        sizes (list of str): A list of four labels corresponding to the object configurations.
     """
     fig, axs = plt.subplots(2, 2, figsize=(3.1, 3.8))
 
@@ -444,16 +420,16 @@ def visualize_object_grid(obj_grids, sizes):
 
     # visualize grid for every object configuraiton
     for i in range(4):
-        axs[i].imshow(obj_grids[i][0], cmap=cmap)  # Display grid
-        axs[i].set_xticks([])  # Remove x-axis ticks
-        axs[i].set_yticks([])  # Remove y-axis ticks
-        axs[i].grid(False)  # Remove grid lines
+        axs[i].imshow(obj_grids[i][0], cmap=cmap)  
+        axs[i].set_xticks([])   
+        axs[i].set_yticks([])  
+        axs[i].grid(False)  
         axs[i].set_title(sizes[i])
     
     plt.suptitle(f"Object Grids ({len(obj_grids[0][0])}x{len(obj_grids[0][1])})")
     plt.tight_layout()
     plt.savefig("plots/object_layout.png", dpi=300)
-    plt.show()  # Display the plot
+    plt.show() 
 
 
 def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measure_omega, config_labels, sizes, colors):
@@ -466,17 +442,11 @@ def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measu
     Variance is displayed as a shaded region.
 
     Parameters:
-    -----------
-    all_grids, all_grids_omega : dict
-        Mapping of grid sizes and omega values to mean/variance data.
-    null_measure, null_measure_omega : list
-        Reference values plotted as dashed lines.
-    config_labels : list of str
-        Labels for different object configurations.
-    sizes : list of str
-        Legend labels for configurations.
-    colors : list of str
-        Colors for each configuration.
+        all_grids, all_grids_omega (dict): Mapping of grid sizes and omega values to mean/variance data.
+        null_measure, null_measure_omega (list): Reference values plotted as dashed lines.
+        config_labels (list of str): Labels for different object configurations.
+        sizes (list of str): Legend labels for configurations.
+        colors (list of str): Colors for each configuration.
     """
    
     fig, axs = plt.subplots(2, 1, figsize=(4, 5.5))
@@ -527,4 +497,56 @@ def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measu
     plt.suptitle("Convergence on Object Grid", fontsize= 14)
     plt.tight_layout()
     plt.savefig("plots/questionK.png", dpi=300)
+    plt.show()
+
+
+def plot_converged_object_grid(all_c, iterate_through,config, which_one="N"):
+    """
+    function plotting the 2D diffustion grid,
+    5 states for t = 0, 0.001, 0.01, 0.1, 1.0
+    """
+
+    assert len(all_c.keys()) == len(iterate_through), "Data provided and variables used for experimentation don't allign"
+
+    # plot setup
+    if which_one == "O":
+        sizeje = (6.6, 5.3)
+        fx = 3
+        fy = 2
+        titletje = r"$\omega$"
+        h=0.78
+    elif which_one == "N":
+        sizeje= (6.6, 3.0)
+        fx = 3
+        fy =1
+        titletje = "Grid Size"
+        h = 0.65
+    else: 
+        raise ValueError(f"{which_one} is not a valid experimentation, choose N or O")
+    
+    fig, axs = plt.subplots(fy, fx, figsize=sizeje)
+    fig.suptitle(f"Grid diffusion (Object configuration {config})")
+    axs = axs.flatten()
+
+    for ktje, i in enumerate(iterate_through):
+        # print(all_c[i])
+        im = axs[ktje].imshow(
+            all_c[i][config], cmap="viridis", interpolation="nearest", origin="lower"
+        )
+        if fx <2:
+            axs[ktje].set_xlabel("x")
+        elif ktje > 2:
+            axs[ktje].set_xlabel("x")
+        axs[ktje].set_title(titletje + f"{i}")
+  
+    axs[0].set_ylabel("y")
+    if fy > 1:
+        axs[3].set_ylabel("y")
+
+    cbar_ax = fig.add_axes([0.92, 0.09, 0.02, h])  # [left, bottom, width, height]
+    fig.colorbar(im, cax=cbar_ax, label="Concentration")
+
+    plt.tight_layout(rect=[0, 0, 0.93, 1])
+    plt.subplots_adjust(wspace=0.2, hspace=0.2)
+    plt.savefig("plots/diffusion_snapshots.png", dpi=300)
     plt.show()
