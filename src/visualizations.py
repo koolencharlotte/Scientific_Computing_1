@@ -252,7 +252,7 @@ def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
     else:
         grids, times = update_func(grid, num_steps, N, gamma, dt)
 
-    print(f"Starting grid: {grid}")
+    # print(f"Starting grid: {grid}")
 
     fig, axs = plt.subplots(figsize=(6, 6))
     img = axs.imshow(grids[0], cmap="viridis", interpolation="nearest", origin="lower")

@@ -263,7 +263,6 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
         grid[:] = c_new[:]
 
         t = round(t + dt, 6)
-        print(f"Step: {n}, Time: {t}")
 
         if comparison:
             for key_t in key_times:
