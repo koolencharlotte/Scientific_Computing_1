@@ -368,7 +368,10 @@ def check_and_parse_data(data_file, newdata, values, comp):
 
     if not newdata:
         if os.path.exists(f"data/{data_file}"):
-            all_c, times = pkl.load(open(f"data/{data_file}", "rb"))
+            if comp: 
+                all_c, times = pkl.load(open(f"data/comparison_{data_file}", "rb"))
+            else:
+                all_c, times = pkl.load(open(f"data/{data_file}", "rb"))
         else:
             raise ValueError(
                 f"the data {data_file} does not exist, choose an existing file"
