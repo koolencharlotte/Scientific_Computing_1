@@ -1,11 +1,12 @@
 import os
 import pickle as pkl
-from scipy.stats import ttest_ind_from_stats
-
-from numba import njit, prange
-import numpy as np
 from math import erfc
 from multiprocessing import Pool
+
+import numpy as np
+from numba import njit, prange
+from scipy.stats import ttest_ind_from_stats
+
 
 def spat_approx_1a(deltax, solutions):
     """
@@ -150,10 +151,6 @@ def one_b_wrapper(which_one, L, N, c, deltat, iters=20000):
     return overall_solutions, xs
 
 
-def two_dimensional_step_wave_function(all_sols, c, xs, deltax, deltat):
-    pass
-
-
 def analytical_solution(x, t, D=1, i_max=100):
     """
     Function describing the analytical solution to the 2D
@@ -171,13 +168,14 @@ def analytical_solution(x, t, D=1, i_max=100):
 
     return sum_val
 
+
 def initialize_grid(N):
     """
     Generates a grid with the specified dimensions and initializes the boundaries.
     Parameters:
         N (int): Grid size.
     """
-
+    assert N > 1, "Grid size must be bigger than 1x1"
     grid = np.zeros((N, N))
 
     grid[0, :] = 0  # bottom boundary
@@ -195,13 +193,12 @@ def apply_periodic_boundary(grid):
     grid[:, -1] = grid[:, 1]
 
 
-
 @njit(parallel=True)
 def update(grid, num_steps, N, gamma, dt, comparison=False):
     """
     Evolves a 2D grid using an explicit finite difference scheme to simulate diffusion.
 
-    The update follows a finite difference approximation of the 2D diffusion equation 
+    The update follows a finite difference approximation of the 2D diffusion equation
     with periodic boundary conditions. Grid snapshots are saved at selected time steps.
 
     Parameters:
@@ -210,7 +207,7 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
         N (int): Grid size (assumes an N x N grid).
         gamma (float): Diffusion coefficient factor.
         dt (float): Time increment per simulation step.
-        comparison (bool, optional): 
+        comparison (bool, optional):
             If True, saves grid snapshots at key times (0.001, 0.01, 0.1, 1.0).
             Otherwise, saves snapshots every 100 steps. Default is False.
 
@@ -223,7 +220,6 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
         - "data/2D_diffusion_comparison.pkl" if `comparison` is True.
         - "data/2D_diffusion.pkl" otherwise.
     """
-
 
     all_grids = [grid.copy()]
     t = 0
@@ -241,19 +237,14 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
         # iterate through over grid (in parallel)
         for i in prange(1, N - 1):
             for j in range(N):
-                
-                south =  grid[i - 1, j] if i > 0 else 0
-                north =  grid[i + 1, j] if i < N - 1 else 1
-                west =  grid[i, j - 1] if j > 0 else grid[i, N-1]
-                east = grid[i, j + 1] if j < N - 1 else grid[i,0]
+                south = grid[i - 1, j] if i > 0 else 0
+                north = grid[i + 1, j] if i < N - 1 else 1
+                west = grid[i, j - 1] if j > 0 else grid[i, N - 1]
+                east = grid[i, j + 1] if j < N - 1 else grid[i, 0]
 
                 # do the update of the cell
                 c_new[i, j] = grid[i, j] + gamma * (
-                    north
-                    + south
-                    + east
-                    + west
-                    - 4 * grid[i, j]
+                    north + south + east + west - 4 * grid[i, j]
                 )
 
         # makes sure the boundary wraps around
@@ -265,12 +256,14 @@ def update(grid, num_steps, N, gamma, dt, comparison=False):
         t = round(t + dt, 6)
 
         if comparison:
+            # Save grid at key times for comparison against analytical solution
             for key_t in key_times:
                 if np.isclose(t, key_t, atol=1e-9) and t not in time_appended:
                     all_grids.append(c_new.copy())
                     times.append(t)
                     time_appended.add(t)
         else:
+            # Save grid every 100 steps for animation
             if n % 100 == 0:
                 all_grids.append(grid.copy())
                 times.append(t)
@@ -333,18 +326,21 @@ def run_simulation_without_animation():
     return all_grids, times
 
 
-
 def save_grids(all_grids, times, data_file, comparison):
+    """
+    Create pickle file containing grid snapshots and corresponding times.
+    """
     path = f"data/comparison_{data_file}" if comparison else f"data/{data_file}"
     with open(path, "wb") as f:
         pkl.dump((all_grids, times), f)
+
 
 def check_and_parse_data(data_file, newdata, values, comp):
     """
     Loads simulation data from a file or generates new data by running a simulation.
 
-    The function checks for the existence of a "data" directory, unpacks simulation parameters 
-    from `values`, and either loads existing data from `data_file` or runs a new simulation using 
+    The function checks for the existence of a "data" directory, unpacks simulation parameters
+    from `values`, and either loads existing data from `data_file` or runs a new simulation using
     the `update` function with `comparison=True`.
 
     Parameters:
@@ -361,7 +357,6 @@ def check_and_parse_data(data_file, newdata, values, comp):
         list of numpy.ndarray: Grid snapshots from the simulation.
         list of float: Time points corresponding to each snapshot.
     """
-
 
     # check if main folder exists
     assert os.path.exists("data"), (
@@ -403,7 +398,9 @@ def sequential_jacobi(N, tol, max_iters):
         int: Number of iterations required to reach convergence.
         numpy.ndarray: Final grid after iterations.
     """
-    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    assert N > 1, (
+        f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    )
 
     # grid initialisation
     c_old = initialize_grid(N)
@@ -415,13 +412,12 @@ def sequential_jacobi(N, tol, max_iters):
     while delta > tol and iter < max_iters:
         delta = 0
 
-        for i in range(1, N-1):
+        for i in range(1, N - 1):
             for j in range(0, N):
-
                 south = c_old[i - 1, j] if i > 0 else 0
                 north = c_old[i + 1, j] if i < N - 1 else 1
-                west = c_old[i, j - 1] if j > 0 else c_old[i, N-1]
-                east = c_old[i, j + 1] if j < N - 1 else c_old[i,0]
+                west = c_old[i, j - 1] if j > 0 else c_old[i, N - 1]
+                east = c_old[i, j + 1] if j < N - 1 else c_old[i, 0]
 
                 # Jacobi update equation
                 c_next[i, j] = 0.25 * (west + east + south + north)
@@ -455,7 +451,9 @@ def sequential_gauss_seidel(N, tol, max_iters):
     """
 
     # grid initialisation
-    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    assert N > 1, (
+        f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    )
     c = initialize_grid(N)
 
     iter = 0
@@ -466,14 +464,13 @@ def sequential_gauss_seidel(N, tol, max_iters):
         delta = 0
 
         # loop over values in the grid (except for y=0, y=N)
-        for i in range(1, N-1):
+        for i in range(1, N - 1):
             for j in range(0, N):
-
                 # retrieve all necessary values (also regarding wrap-around)
                 south = c[i - 1, j] if i > 0 else 0
                 north = c[i + 1, j] if i < N - 1 else 1
-                west = c[i, j - 1] if j > 0 else c[i, N-1]
-                east = c[i, j + 1] if j < N - 1 else c[i,0]
+                west = c[i, j - 1] if j > 0 else c[i, N - 1]
+                east = c[i, j + 1] if j < N - 1 else c[i, 0]
 
                 # Gauss-Seidel update equation
                 c_next = 0.25 * (west + east + south + north)
@@ -485,6 +482,7 @@ def sequential_gauss_seidel(N, tol, max_iters):
         iter += 1
 
     return iter, c
+
 
 def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
     """
@@ -501,10 +499,12 @@ def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
 
     Returns:
         int: Number of iterations required to reach convergence.
-        numpy.ndarray: Final grid after iterations. 
+        numpy.ndarray: Final grid after iterations.
     """
 
-    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    assert N > 1, (
+        f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    )
 
     # grid initialisation
     c = initialize_grid(N)
@@ -517,14 +517,13 @@ def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
         delta = 0
 
         # loop over all cells in the grid (except for y = 0, y=N)
-        for i in range(1, N-1):
+        for i in range(1, N - 1):
             for j in range(N):
-
                 # retrieve all necessary values (also regarding wrap-around)
                 south = c[i - 1, j] if i > 0 else 0
                 north = c[i + 1, j] if i < N - 1 else 1
-                west = c[i, j - 1] if j > 0 else c[i, N-1]
-                east = c[i, j + 1] if j < N - 1 else c[i,0]
+                west = c[i, j - 1] if j > 0 else c[i, N - 1]
+                east = c[i, j + 1] if j < N - 1 else c[i, 0]
 
                 # SOR update equation
                 c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[
@@ -539,13 +538,14 @@ def sequential_SOR(N, tol, max_iters, omega, object_grid=None):
 
     return iter, c
 
+
 def non_sequential_SOR(params):
     """
     Solves using the Successive Over Relaxtion (SOR) iteration method (suitable for parallel implementation)
-    
+
     The update equation is:
         c_{i,j}^{k+1} = (omega/4) * (c_{i+1,j}^{k} + c_{i,j+1}^{k} + c_{i,j+1}^{k} + (1 - omega) c_{i,j}^{k})
-    
+
     Parameters:
         N (int): Grid size.
         tol (float): Convergence tolerance.
@@ -555,23 +555,24 @@ def non_sequential_SOR(params):
     Returns:
         int: Number of iterations required to reach convergence.
     """
-    N, tol, max_iters, omega, object_grid= params
-    assert N>1, f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    N, tol, max_iters, omega, object_grid = params
+    assert N > 1, (
+        f"bord is {N}x{N}, but needs to be at least 2*2 for this diffusion implementation"
+    )
     # grid initialisation
     c = initialize_grid(N)
 
     iter = 0
-    delta = float('inf')
+    delta = float("inf")
 
     # while not converged
     while delta > tol and iter < max_iters:
         delta = 0
 
         # loop over grid (except for y=0, y=N)
-        for i in range(1, N-1):  # periodic in x
+        for i in range(1, N - 1):  # periodic in x
             for j in range(N):  # fixed in y
-                
-                # if an grid point lies within the object 
+                # if an grid point lies within the object
                 if object_grid is not None and object_grid[(i, j)]:
                     c_next = 0
                     continue
@@ -579,11 +580,13 @@ def non_sequential_SOR(params):
                 # periodic boundary conditions
                 south = c[i - 1, j] if i > 0 else 0
                 north = c[i + 1, j] if i < N - 1 else 1
-                west = c[i, j - 1] if j > 0 else c[i, N-1]
-                east = c[i, j + 1] if j < N - 1 else c[i,0]
-                
+                west = c[i, j - 1] if j > 0 else c[i, N - 1]
+                east = c[i, j + 1] if j < N - 1 else c[i, 0]
+
                 # SOR update equation
-                c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[i, j]
+                c_next = (omega / 4) * (west + east + south + north) + (1 - omega) * c[
+                    i, j
+                ]
 
                 # check for convergence
                 delta = max(delta, abs(c_next - c[i, j]))
@@ -592,6 +595,7 @@ def non_sequential_SOR(params):
         iter += 1
 
     return iter, c
+
 
 def place_objects(N, num_object, seed=31, size_object=4):
     """
@@ -607,21 +611,22 @@ def place_objects(N, num_object, seed=31, size_object=4):
         numpy.ndarray: NxN grid with placed objects, where occupied cells are marked as 1.
     """
 
-
-    object_grid = np.zeros((N,N))
+    object_grid = np.zeros((N, N))
     np.random.seed(seed)
-    
-    #loop over number of objects
-    for _ in range(num_object):
 
+    # loop over number of objects
+    for _ in range(num_object):
         # staying within range of the grid, + not occupying border cell -> border conditions
-        x,y = np.random.randint(1, N - size_object, size=2)
-        points = [(x+j, y+k) for j in range(size_object) for k in range(size_object)]
+        x, y = np.random.randint(1, N - size_object, size=2)
+        points = [
+            (x + j, y + k) for j in range(size_object) for k in range(size_object)
+        ]
 
         # set value of indexes that object occupies 1
         object_grid[tuple(zip(*points))] = 1
 
-    return object_grid 
+    return object_grid
+
 
 def create_object_layouts(N, object_configs, num_grids=10):
     """
@@ -633,11 +638,23 @@ def create_object_layouts(N, object_configs, num_grids=10):
         object_grids_sub = []
         for _ in range(num_grids):
             object_grids_sub.append(place_objects(N, num_objects, seedje, size))
-            seedje+=1
+            seedje += 1
         object_gridjes.append(object_grids_sub)
     return object_gridjes
 
-def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje, tol, object_configs, what_value= "N", PROCESSES=10):
+
+def generate_grid_results(
+    varying,
+    N,
+    all_grids,
+    num_grids,
+    max_iters,
+    omegatje,
+    tol,
+    object_configs,
+    what_value="N",
+    PROCESSES=10,
+):
     """
     Runs the Successive Over-Relaxation (SOR) method in parallel for different grid sizes or omega values.
 
@@ -658,11 +675,10 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
         list: Reference values from running SOR on an empty grid (no objects).
     """
 
-
     all_results = dict()
     all_results_map = dict()
-    zeros_metric =[]
-    
+    zeros_metric = []
+
     ntje = N
     omega = omegatje
     # iterate over all grid-sizes
@@ -670,32 +686,38 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
         # determine what value we're iterating over
         if what_value == "N":
             ntje = variable
-        elif what_value== "O":
+        elif what_value == "O":
             omega = variable
         else:
             raise ValueError(f"{what_value} is not a valid variable to vary")
-        if ntje <20:
+        if ntje < 20:
             continue
-        print(f"starting parallel implementation of SOR for grid size {ntje}x{ntje}, omega: {omega}")
+        print(
+            f"starting parallel implementation of SOR for grid size {ntje}x{ntje}, omega: {omega}"
+        )
         result_config = dict()
         all_solution_map = dict()
         # loop over different object grid configurations (object sizes)
         for config in range(len(all_grids[ntje])):
             # loop over the number of grids per grid-setting (parallel implementation)
             pars = []
-            
-            # make parameter list for parallelization 
+
+            # make parameter list for parallelization
             for run in range(num_grids):
                 pars.append((ntje, tol, max_iters, omega, all_grids[ntje][config][run]))
 
             # parallelizaiton
             with Pool(PROCESSES) as pool:
-                assert PROCESSES < os.cpu_count(), f"Lower the number of processes {PROCESSES}"
+                assert PROCESSES < os.cpu_count(), (
+                    f"Lower the number of processes {PROCESSES}"
+                )
                 all_sols = pool.map(non_sequential_SOR, pars)
                 iter1, map2 = zip(*all_sols)
                 itertjes = list(iter1)
                 soltjes = list(map2)
-                assert np.any(itertjes) < max_iters, f"maximum number of iterations for variables N:{ntje}, omega:{omega}, config{config} is reached, choose different omega"
+                assert np.any(itertjes) < max_iters, (
+                    f"maximum number of iterations for variables N:{ntje}, omega:{omega}, config{config} is reached, choose different omega"
+                )
 
             # calculate mean and variance, save for every grid size and object configuration
             mean_config = np.mean(itertjes)
@@ -704,10 +726,10 @@ def generate_grid_results(varying, N, all_grids, num_grids, max_iters, omegatje,
             result_config[object_configs[config]] = (mean_config, var_config)
         all_results_map[variable] = all_solution_map
         all_results[variable] = result_config
-    
+
         # a null-measure: with no objects on the grid
-        pars= (ntje, tol, max_iters, omega, None)
-        zero_sol, _  = sequential_SOR(ntje, tol, max_iters, omega, None)
+        pars = (ntje, tol, max_iters, omega, None)
+        zero_sol, _ = sequential_SOR(ntje, tol, max_iters, omega, None)
         zeros_metric.append(zero_sol)
     return all_results, all_results_map, zeros_metric
 
@@ -716,14 +738,14 @@ def statistical_test_for_objects(object_configs, all_res, forwhat="O"):
     """
     Performs statistical tests on object configurations and writes results to a file.
 
-    This function analyzes different object configurations and evaluates their statistical 
+    This function analyzes different object configurations and evaluates their statistical
     properties based on the results obtained for various omega values.
 
     Parameters:
         object_configs (list): List of object configurations.
         all_res (dict): Dictionary containing results for different omega values.
         for_what: for "O" (varying omega experiments) or "N" (varying grid-size experiments)
-        
+
     """
 
     # Ensure the "data" folder exists
@@ -736,10 +758,12 @@ def statistical_test_for_objects(object_configs, all_res, forwhat="O"):
         c_object23 = object_configs[2:4]
         if forwhat == "O":
             testing_what = "Omega"
-        elif forwhat == "N": 
+        elif forwhat == "N":
             testing_what = "Grid Sizes"
-        else: 
-            raise ValueError(f"Can't do statistical tests, experiment {forwhat} does not exist, choose O or N")
+        else:
+            raise ValueError(
+                f"Can't do statistical tests, experiment {forwhat} does not exist, choose O or N"
+            )
         # Statistical testing for all omega values
         for value, configs in all_res.items():
             f.write(f"Statistical testing for {testing_what} = {value}\n")
@@ -756,20 +780,26 @@ def statistical_test_for_objects(object_configs, all_res, forwhat="O"):
                 mean1, var1 = data_012[1]
                 mean2, var2 = data_012[2]
 
-                t_stat_01, p_value_01 = ttest_ind_from_stats(mean0, np.sqrt(var0), 10, 
-                                                            mean1, np.sqrt(var1), 10, 
-                                                            equal_var=False)
-                f.write(f"T-test for Object Configs {object_configs[0]} & {object_configs[1]}: t={t_stat_01:.3f}, p={p_value_01:.3f}\n")
+                t_stat_01, p_value_01 = ttest_ind_from_stats(
+                    mean0, np.sqrt(var0), 10, mean1, np.sqrt(var1), 10, equal_var=False
+                )
+                f.write(
+                    f"T-test for Object Configs {object_configs[0]} & {object_configs[1]}: t={t_stat_01:.3f}, p={p_value_01:.3f}\n"
+                )
 
-                t_stat_12, p_value_12 = ttest_ind_from_stats(mean1, np.sqrt(var1), 10, 
-                                                            mean2, np.sqrt(var2), 10, 
-                                                            equal_var=False)
-                f.write(f"T-test for Object Configs {object_configs[1]} & {object_configs[2]}: t={t_stat_12:.3f}, p={p_value_12:.3f}\n")
+                t_stat_12, p_value_12 = ttest_ind_from_stats(
+                    mean1, np.sqrt(var1), 10, mean2, np.sqrt(var2), 10, equal_var=False
+                )
+                f.write(
+                    f"T-test for Object Configs {object_configs[1]} & {object_configs[2]}: t={t_stat_12:.3f}, p={p_value_12:.3f}\n"
+                )
 
-                t_stat_02, p_value_02 = ttest_ind_from_stats(mean0, np.sqrt(var0), 10, 
-                                                            mean2, np.sqrt(var2), 10, 
-                                                            equal_var=False)
-                f.write(f"T-test for Object Configs {object_configs[0]} & {object_configs[2]}: t={t_stat_02:.3f}, p={p_value_02:.3f}\n")
+                t_stat_02, p_value_02 = ttest_ind_from_stats(
+                    mean0, np.sqrt(var0), 10, mean2, np.sqrt(var2), 10, equal_var=False
+                )
+                f.write(
+                    f"T-test for Object Configs {object_configs[0]} & {object_configs[2]}: t={t_stat_02:.3f}, p={p_value_02:.3f}\n"
+                )
 
             # Test for different object configurations (different surface covered)
             f.write("\nDifferent surface covered\n")
@@ -777,10 +807,12 @@ def statistical_test_for_objects(object_configs, all_res, forwhat="O"):
                 mean2, var2 = data_23[0]
                 mean3, var3 = data_23[1]
 
-                t_stat_23, p_value_23 = ttest_ind_from_stats(mean2, np.sqrt(var2), 10, 
-                                                            mean3, np.sqrt(var3), 10, 
-                                                            equal_var=False)
-                f.write(f"T-test for Object Configs {object_configs[2]} & {object_configs[3]}: t={t_stat_23:.3f}, p={p_value_23:.3f}\n")
+                t_stat_23, p_value_23 = ttest_ind_from_stats(
+                    mean2, np.sqrt(var2), 10, mean3, np.sqrt(var3), 10, equal_var=False
+                )
+                f.write(
+                    f"T-test for Object Configs {object_configs[2]} & {object_configs[3]}: t={t_stat_23:.3f}, p={p_value_23:.3f}\n"
+                )
 
             f.write("=" * 50 + "\n")
 

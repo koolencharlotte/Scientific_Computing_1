@@ -1,13 +1,15 @@
 import os
 import pickle as pkl
 
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import src.solutions as solutions
 from matplotlib.animation import FuncAnimation
-import matplotlib.colors as mcolors 
-import matplotlib.cm as cm
+
 # 1B
+
 
 def visualization_1b(overall_solutions, xs, iterations, deltat):
     """
@@ -21,11 +23,11 @@ def visualization_1b(overall_solutions, xs, iterations, deltat):
     """
 
     max_time = iterations * deltat
-    num_lines = len(overall_solutions[0])  
+    num_lines = len(overall_solutions[0])
 
     # Normalize time values for colormap
     norm = mcolors.Normalize(vmin=0, vmax=max_time)
-    cmap = cm.viridis # Choose a colormap
+    cmap = cm.viridis  # Choose a colormap
     sm = cm.ScalarMappable(cmap=cmap, norm=norm)  # For colorbar
 
     fig, axs = plt.subplots(1, 3, figsize=(4.8, 2.8), sharey=True)
@@ -33,7 +35,9 @@ def visualization_1b(overall_solutions, xs, iterations, deltat):
     for j in range(len(overall_solutions)):
         for k in range(num_lines):
             time_val = k * (max_time / num_lines)  # Assign time to each line
-            axs[j].plot(xs, overall_solutions[j][k], linewidth=0.9, color=cmap(norm(time_val)))
+            axs[j].plot(
+                xs, overall_solutions[j][k], linewidth=0.9, color=cmap(norm(time_val))
+            )
 
         axs[j].set_xlabel("x")
         axs[j].set_title("i" * (j + 1))
@@ -42,22 +46,23 @@ def visualization_1b(overall_solutions, xs, iterations, deltat):
     axs[0].yaxis.set_label_coords(-0.22, 0.5)
 
     # Adding horizontal colorbar below the subplots
-    cbar_ax = fig.add_axes([0.13, 0.07, 0.82, 0.03]) 
-    cbar = plt.colorbar(sm, cax=cbar_ax, orientation='horizontal')
+    cbar_ax = fig.add_axes([0.13, 0.07, 0.82, 0.03])
+    cbar = plt.colorbar(sm, cax=cbar_ax, orientation="horizontal")
     cbar.set_label("Time (S)")
 
     fig.suptitle("Wave Time-stepping Approximation")
-    plt.tight_layout() 
-    plt.subplots_adjust(wspace=0.08, top=0.8, bottom=0.27)  
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.08, top=0.8, bottom=0.27)
 
     plt.savefig("plots/fig_1B.png", dpi=300)
     plt.show()
 
-#1C
+
+# 1C
 def animate_1c(L, N, c, deltat):
     """
-    Generates an animated visualization of wave propagation using three different 
-    initial wave functions. The animation updates the wave solutions over time 
+    Generates an animated visualization of wave propagation using three different
+    initial wave functions. The animation updates the wave solutions over time
     based on a finite difference time-stepping method.
 
     Parameters:
@@ -66,9 +71,9 @@ def animate_1c(L, N, c, deltat):
         c (float): Wave speed.
         deltat (float):Time step size.
 
-    """ 
+    """
 
-    fig, axs = plt.subplots(1, 3, figsize=(5.3,2.5), sharey=True)
+    fig, axs = plt.subplots(1, 3, figsize=(5.3, 2.5), sharey=True)
 
     fig.suptitle("Wave Time-Stepping Animation")
     all_soltjes = []
@@ -79,14 +84,14 @@ def animate_1c(L, N, c, deltat):
 
         # compute solutions of initial wave and save them for visualization
         all_soltjes.append(soltjes)
-        axs[j].plot(xs, all_soltjes[j][1]) 
-        axs[j].set_title('i'*(j+1))
+        axs[j].plot(xs, all_soltjes[j][1])
+        axs[j].set_title("i" * (j + 1))
         axs[j].set_xlabel("x")
 
     axs[0].set_ylabel(r"$\Psi$")
 
-    plt.tight_layout()  
-    fig.subplots_adjust(top=0.8)  
+    plt.tight_layout()
+    fig.subplots_adjust(top=0.8)
 
     # pause to visualize first frame
     plt.pause(1)
@@ -96,19 +101,17 @@ def animate_1c(L, N, c, deltat):
 
         # for every inital function
         for i in range(3):
-            
             # retrieve previous solution for this function
             soltjes = all_soltjes[i]
 
             # configure layout for each subplot
-            axs[i].clear()  
-            axs[i].set_xlim(0, L)  
-            axs[i].set_ylim(-1, 1) 
+            axs[i].clear()
+            axs[i].set_xlim(0, L)
+            axs[i].set_ylim(-1, 1)
             axs[i].set_title("i" * (i + 1))
 
             # iterate over 10 iterations before visualization (this has no visual effect)
             for _ in range(10):
-
                 # compute solutions for this timestep
                 soltjes = solutions.wave_step_function(soltjes, c, xs, deltax, deltat)
 
@@ -127,6 +130,9 @@ def animate_1c(L, N, c, deltat):
     return animation
 
 
+# 1E
+
+
 def plot_analytical_solution_with_error(y, solution_vals, times, D):
     """
     Funcion comparing analytical solution to numerical solution.
@@ -134,8 +140,6 @@ def plot_analytical_solution_with_error(y, solution_vals, times, D):
     """
     nx = 100
     y_analytic = np.linspace(0.0, 1.0, nx)
-
-    # plt.figure(figsize=(4.5, 3))
 
     fig1, ax1 = plt.subplots(figsize=(4.5, 3))
     fig2, ax2 = plt.subplots(figsize=(4.5, 3))
@@ -196,6 +200,9 @@ def plot_analytical_solution_with_error(y, solution_vals, times, D):
     plt.show()
 
 
+# 1F
+
+
 def plot_five_states(all_c, times):
     """
     function plotting the 2D diffustion grid,
@@ -211,7 +218,11 @@ def plot_five_states(all_c, times):
     axs[-1].set_visible(False)
     for i in range(5):
         im = axs[i].imshow(
-            all_c[i], cmap="viridis", interpolation="nearest", origin="lower", extent=[0, 1, 0, 1]
+            all_c[i],
+            cmap="viridis",
+            interpolation="nearest",
+            origin="lower",
+            extent=[0, 1, 0, 1],
         )
         axs[i].set_title(f"t = {times[i]}")
         if i > 1:
@@ -230,6 +241,7 @@ def plot_five_states(all_c, times):
     plt.savefig("plots/diffusion_snapshots.png", dpi=300, bbox_inches="tight")
     plt.show()
 
+
 def plot_simulation_without_animation(grids, N):
     fig, ax = plt.subplots(figsize=(7, 7))
 
@@ -245,14 +257,17 @@ def plot_simulation_without_animation(grids, N):
     plt.show()
 
 
-def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
+# 1G
+
+
+def animate_1g(update_func, grid, num_steps, N, gamma, dt, interval=50):
     path = "data/2D_diffusion_comparison.pkl"
+
+    # Check if data is already available, else compute it.
     if os.path.exists(path):
         grids, times = pkl.load(open(path, "rb"))
     else:
         grids, times = update_func(grid, num_steps, N, gamma, dt)
-
-    # print(f"Starting grid: {grid}")
 
     fig, axs = plt.subplots(figsize=(6, 6))
     img = axs.imshow(grids[0], cmap="viridis", interpolation="nearest", origin="lower")
@@ -263,6 +278,7 @@ def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
         img.set_array(grids[frame])
         axs.set_title(f"2D Diffusion Simulation (Step: {frame:.3g})")
 
+    # Create animation
     animation = FuncAnimation(
         fig, animate, frames=len(grids), interval=interval, blit=False
     )
@@ -271,11 +287,12 @@ def animate_2f(update_func, grid, num_steps, N, gamma, dt, interval=50):
     plt.close(fig)
     return animation
 
+
 def visualization_1h(c_jacobi_2d, c_gs_2d, c_sor_2d, N):
     """
     Visualizes the absolute error betweeen the solution of the iterative methods: Jacobi, Gauss-Seidel,
     and SOR methods with the analytical solution for a grid size of 50.
-    
+
     Parameters:
         c_jacobi_2d: 2D array representing the solution using the Jacobi method.
         c_gs_2d: 2D array representing the solution using the Gauss-Seidel method.
@@ -285,15 +302,14 @@ def visualization_1h(c_jacobi_2d, c_gs_2d, c_sor_2d, N):
 
     y_analytic = np.linspace(0, 1, N)
 
-    c_jacobi_1d = c_jacobi_2d[:,0]
-    c_gs_1d = c_gs_2d[:,0]
-    c_sor_1d = c_sor_2d[:,0]
+    c_jacobi_1d = c_jacobi_2d[:, 0]
+    c_gs_1d = c_gs_2d[:, 0]
+    c_sor_1d = c_sor_2d[:, 0]
 
     error_jacobi = np.abs(c_jacobi_1d - y_analytic)
     error_gs = np.abs(c_gs_1d - y_analytic)
     error_sor = np.abs(c_sor_1d - y_analytic)
 
-    
     plt.figure(figsize=(6.7, 3.5))
     plt.plot(y_analytic, error_jacobi, "o", markersize=2, label="Jacobi")
     plt.plot(y_analytic, error_gs, "o", markersize=2, label="Gauss-Seidel")
@@ -305,6 +321,7 @@ def visualization_1h(c_jacobi_2d, c_gs_2d, c_sor_2d, N):
     plt.grid(True)
     plt.savefig("plots/fig_1h.png", dpi=300, bbox_inches="tight")
     plt.show()
+
 
 def visualization_1i(
     p_values, iterations_jacobi, iterations_gauss_seidel, iterations_sor, colors
@@ -402,6 +419,7 @@ def visualization_1j_N_omegas(N_values, optimal_omegas, colors):
     plt.savefig("plots/fig_1jb.png", dpi=300, bbox_inches="tight")
     plt.show()
 
+
 # 1K
 def visualize_object_grid(obj_grids, sizes):
     """
@@ -414,24 +432,32 @@ def visualize_object_grid(obj_grids, sizes):
     fig, axs = plt.subplots(2, 2, figsize=(3.1, 3.8))
 
     # grey for spaces not occupied and black for occupied spaces
-    cmap = mcolors.ListedColormap(["lightgrey", "black"])  
+    cmap = mcolors.ListedColormap(["lightgrey", "black"])
     axs = axs.flatten()
 
     # visualize grid for every object configuraiton
     for i in range(4):
-        axs[i].imshow(obj_grids[i][0], cmap=cmap)  
-        axs[i].set_xticks([])   
-        axs[i].set_yticks([])  
-        axs[i].grid(False)  
+        axs[i].imshow(obj_grids[i][0], cmap=cmap)
+        axs[i].set_xticks([])
+        axs[i].set_yticks([])
+        axs[i].grid(False)
         axs[i].set_title(sizes[i])
-    
+
     plt.suptitle(f"Object Grids ({len(obj_grids[0][0])}x{len(obj_grids[0][1])})")
     plt.tight_layout()
     plt.savefig("plots/object_layout.png", dpi=300)
-    plt.show() 
+    plt.show()
 
 
-def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measure_omega, config_labels, sizes, colors):
+def vis_object_per_gridsize(
+    all_grids,
+    all_grids_omega,
+    null_measure,
+    null_measure_omega,
+    config_labels,
+    sizes,
+    colors,
+):
     """
     Visualizes the convergence of an object grid for different grid sizes and omega values.
 
@@ -447,44 +473,50 @@ def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measu
         sizes (list of str): Legend labels for configurations.
         colors (list of str): Colors for each configuration.
     """
-   
+
     fig, axs = plt.subplots(2, 1, figsize=(4, 5.5))
 
     # incase iterated through omega: grid represent different omega values
-    grids = sorted(all_grids.keys())  
+    grids = sorted(all_grids.keys())
     omegas = sorted(all_grids_omega.keys())
     grid_om = [all_grids, all_grids_omega]
 
     keyvals = [grids, omegas]
     # Iterate over each object configuration and plot a separate line
     for i, config_label in enumerate(config_labels):
-
         for j in range(2):
             means = []
             vartjes = []
-            
+
             # loop over the different experiments and access mean and variance
             for grid_size in keyvals[j]:
-                config_data = grid_om[j][grid_size]  # Get the dictionary for this grid size
+                config_data = grid_om[j][
+                    grid_size
+                ]  # Get the dictionary for this grid size
                 means.append(config_data[config_label][0])  # Mean value
                 vartjes.append(config_data[config_label][1])  # Variance value
-    
+
             # Plot line for this configuration
-            axs[j].plot(keyvals[j], means, label=f"{sizes[i]}", marker="o", color=colors[i])
+            axs[j].plot(
+                keyvals[j], means, label=f"{sizes[i]}", marker="o", color=colors[i]
+            )
 
             # Plot variance as a shaded region
-            axs[j].fill_between(keyvals[j], 
-                            np.array(means) - np.array(np.sqrt(vartjes)), 
-                            np.array(means) + np.array(np.sqrt(vartjes)), 
-                            alpha=0.2, color=colors[i])
+            axs[j].fill_between(
+                keyvals[j],
+                np.array(means) - np.array(np.sqrt(vartjes)),
+                np.array(means) + np.array(np.sqrt(vartjes)),
+                alpha=0.2,
+                color=colors[i],
+            )
 
     # Plot null measure for reference
-    axs[0].plot(grids, null_measure, '--', label=f"{sizes[-1]}", color="black")
-    axs[1].plot(omegas, null_measure_omega, '--', label=f"{sizes[-1]}", color="black")
+    axs[0].plot(grids, null_measure, "--", label=f"{sizes[-1]}", color="black")
+    axs[1].plot(omegas, null_measure_omega, "--", label=f"{sizes[-1]}", color="black")
     axs[0].set_xlabel("Grid Size")
     axs[1].set_xlabel(r"$\omega$")
-    
-    axs[0].set_title(r"For Different Grid-Sizes ($\omega$ = 1.9)" )
+
+    axs[0].set_title(r"For Different Grid-Sizes ($\omega$ = 1.9)")
     axs[1].set_title(r"For Different $\omega$ Values (50x50)")
 
     # Labels and legend
@@ -493,13 +525,13 @@ def vis_object_per_gridsize(all_grids, all_grids_omega, null_measure, null_measu
     axs[1].set_ylabel("Iterations")
 
     axs[0].legend()
-    plt.suptitle("Convergence on Object Grid", fontsize= 14)
+    plt.suptitle("Convergence on Object Grid", fontsize=14)
     plt.tight_layout()
     plt.savefig("plots/questionK.png", dpi=300)
     plt.show()
 
 
-def plot_converged_object_grid(all_c, iterate_through,config, which_one="N"):
+def plot_converged_object_grid(all_c, iterate_through, config, which_one="N"):
     """
     Plots converged object grids for different experimental conditions.
 
@@ -510,9 +542,11 @@ def plot_converged_object_grid(all_c, iterate_through,config, which_one="N"):
         which_one (str, optional): Specifies the experiment type:
             - "N": Varying grid size (default).
             - "O": Varying relaxation factor ω.
-   """
+    """
 
-    assert len(all_c.keys()) == len(iterate_through), "Data provided and variables used for experimentation don't allign"
+    assert len(all_c.keys()) == len(iterate_through), (
+        "Data provided and variables used for experimentation don't allign"
+    )
 
     # plot setup
     if which_one == "O":
@@ -520,16 +554,16 @@ def plot_converged_object_grid(all_c, iterate_through,config, which_one="N"):
         fx = 3
         fy = 2
         titletje = r"$\omega$"
-        h=0.78
+        h = 0.78
     elif which_one == "N":
-        sizeje= (6.6, 3.0)
+        sizeje = (6.6, 3.0)
         fx = 3
-        fy =1
+        fy = 1
         titletje = "Grid Size"
         h = 0.65
-    else: 
+    else:
         raise ValueError(f"{which_one} is not a valid experimentation, choose N or O")
-    
+
     fig, axs = plt.subplots(fy, fx, figsize=sizeje)
     fig.suptitle(f"Grid diffusion (Object configuration {config})")
     axs = axs.flatten()
@@ -539,12 +573,12 @@ def plot_converged_object_grid(all_c, iterate_through,config, which_one="N"):
         im = axs[ktje].imshow(
             all_c[i][config], cmap="viridis", interpolation="nearest", origin="lower"
         )
-        if fx <2:
+        if fx < 2:
             axs[ktje].set_xlabel("x")
         elif ktje > 2:
             axs[ktje].set_xlabel("x")
         axs[ktje].set_title(titletje + f"{i}")
-  
+
     axs[0].set_ylabel("y")
     if fy > 1:
         axs[3].set_ylabel("y")
