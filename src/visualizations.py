@@ -54,7 +54,7 @@ def visualization_1b(overall_solutions, xs, iterations, deltat):
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.08, top=0.8, bottom=0.27)
 
-    plt.savefig("plots/fig_1B.png", dpi=300)
+    plt.savefig("plots/fig_1B.png", dpi=300, bbox_inches="tight")
     plt.show()
 
 
