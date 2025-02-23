@@ -1,30 +1,30 @@
 Statistical testing for Grid Sizes = 20
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=4.302, p=0.002
-T-test for Object Configs (48, 2) & (12, 4): t=-7.451, p=0.000
-T-test for Object Configs (3, 8) & (12, 4): t=1.945, p=0.080
+T-test for Object Configs (3, 8) & (48, 2): t=5.356, p=0.000
+T-test for Object Configs (48, 2) & (12, 4): t=-6.004, p=0.000
+T-test for Object Configs (3, 8) & (12, 4): t=2.079, p=0.058
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-3.103, p=0.010
+T-test for Object Configs (12, 4) & (6, 4): t=-4.536, p=0.000
 ==================================================
 Statistical testing for Grid Sizes = 50
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=8.441, p=0.000
-T-test for Object Configs (48, 2) & (12, 4): t=-10.115, p=0.000
-T-test for Object Configs (3, 8) & (12, 4): t=3.536, p=0.005
+T-test for Object Configs (3, 8) & (48, 2): t=3.703, p=0.002
+T-test for Object Configs (48, 2) & (12, 4): t=-2.271, p=0.040
+T-test for Object Configs (3, 8) & (12, 4): t=1.008, p=0.327
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-4.350, p=0.001
+T-test for Object Configs (12, 4) & (6, 4): t=-1.844, p=0.082
 ==================================================
 Statistical testing for Grid Sizes = 100
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=7.392, p=0.000
-T-test for Object Configs (48, 2) & (12, 4): t=-3.999, p=0.002
-T-test for Object Configs (3, 8) & (12, 4): t=6.971, p=0.000
+T-test for Object Configs (3, 8) & (48, 2): t=11.986, p=0.000
+T-test for Object Configs (48, 2) & (12, 4): t=-5.070, p=0.001
+T-test for Object Configs (3, 8) & (12, 4): t=6.845, p=0.000
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-7.203, p=0.000
+T-test for Object Configs (12, 4) & (6, 4): t=-6.784, p=0.000
 ==================================================

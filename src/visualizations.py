@@ -135,8 +135,16 @@ def animate_1c(L, N, c, deltat):
 
 def plot_analytical_solution_with_error(y, solution_vals, times, D):
     """
-    Funcion comparing analytical solution to numerical solution.
-    Plotting points for numerical solution and line for analytical soltution
+    Compares the analytical solution to the numerical solution in a diffusion simulation.
+
+    The function plots numerical solutions as points and analytical solutions as a line.
+    Additionally, it computes and visualizes the absolute error between the two solutions.
+
+    Parameters:
+        y (numpy.ndarray): Spatial positions.
+        solution_vals (list of numpy.ndarray): Numerical solution values at different time points.
+        times (list of float): Time points at which solutions are compared.
+        D (float): Diffusion coefficient.
     """
     nx = 100
     y_analytic = np.linspace(0.0, 1.0, nx)
@@ -205,10 +213,15 @@ def plot_analytical_solution_with_error(y, solution_vals, times, D):
 
 def plot_five_states(all_c, times):
     """
-    function plotting the 2D diffustion grid,
-    5 states for t = 0, 0.001, 0.01, 0.1, 1.0
-    """
+    Visualizes the evolution of a 2D diffusion process at five different time points.
 
+    Generates a grid of subplots displaying the concentration distribution at 
+    t = 0, 0.001, 0.01, 0.1, 1.0. 
+
+    Parameters:
+        all_c (list of numpy.ndarray): 2D concentration grids at specified time points.
+        times (list of float): Time points corresponding to the concentration grids.
+    """
     # plot setup
     fig, axs = plt.subplots(2, 3, figsize=(4.4, 3.4), sharex=True, sharey=True)
     fig.suptitle("2D Diffusion at Different t Values")
@@ -243,6 +256,13 @@ def plot_five_states(all_c, times):
 
 
 def plot_simulation_without_animation(grids, N):
+    """
+    Generates a visualization of the final state of a 2D diffusion simulation.
+
+    Parameters:
+        grids (list of numpy.ndarray): 2D concentration grids from the simulation.
+        N (int): Grid size (number of spatial points in each dimension).
+    """
     fig, ax = plt.subplots(figsize=(7, 7))
 
     c_plot = ax.pcolormesh(grids[-1], cmap="viridis", edgecolors="k", linewidth=0.5)
@@ -258,20 +278,22 @@ def plot_simulation_without_animation(grids, N):
 
 
 # 1G
+def animate_1g(grids, interval=50):
+    """
+    Generates an animation of a 2D diffusion process over time and saves it as a GIF.
 
+    This function takes a sequence of 2D diffusion grids and visualizes its evolution. 
+    The resulting animation is saved to "plots/2D_diffusion.gif".
 
-def animate_1g(update_func, grid, num_steps, N, gamma, dt, interval=50):
-    path = "data/2D_diffusion_comparison.pkl"
+    Parameters:
+        grids (numpy.ndarray): A sequence of 2D arrays representing the diffusion process 
+                               at different time steps.
+        interval (int): Animation frame interval in milliseconds (default: 50).
+    """
 
-    # Check if data is already available, else compute it.
-    if os.path.exists(path):
-        grids, times = pkl.load(open(path, "rb"))
-    else:
-        grids, times = update_func(grid, num_steps, N, gamma, dt)
-
-    fig, axs = plt.subplots(figsize=(6, 6))
-    img = axs.imshow(grids[0], cmap="viridis", interpolation="nearest", origin="lower")
-    plt.colorbar(img, ax=axs, label="Concentration")
+    fig, axs = plt.subplots(figsize=(5, 5))
+    img = axs.imshow(grids[0], cmap="viridis", interpolation="nearest", origin="lower", extent=[0, 1, 0, 1])
+    plt.colorbar(img, ax=axs, label="Concentration", shrink=0.8)
     axs.set_title("2D Diffusion Simulation")
 
     def animate(frame):
@@ -286,7 +308,6 @@ def animate_1g(update_func, grid, num_steps, N, gamma, dt, interval=50):
 
     plt.close(fig)
     return animation
-
 
 def visualization_1h(c_jacobi_2d, c_gs_2d, c_sor_2d, N):
     """

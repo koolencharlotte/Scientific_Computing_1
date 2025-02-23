@@ -1,60 +1,60 @@
 Statistical testing for Omega = 1.7
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=8.919, p=0.000
-T-test for Object Configs (48, 2) & (12, 4): t=-7.666, p=0.000
-T-test for Object Configs (3, 8) & (12, 4): t=4.411, p=0.001
+T-test for Object Configs (3, 8) & (48, 2): t=19.463, p=0.000
+T-test for Object Configs (48, 2) & (12, 4): t=-8.980, p=0.000
+T-test for Object Configs (3, 8) & (12, 4): t=7.855, p=0.000
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-4.826, p=0.000
+T-test for Object Configs (12, 4) & (6, 4): t=-7.071, p=0.000
 ==================================================
 Statistical testing for Omega = 1.75
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=8.369, p=0.000
-T-test for Object Configs (48, 2) & (12, 4): t=-6.991, p=0.000
-T-test for Object Configs (3, 8) & (12, 4): t=4.456, p=0.001
+T-test for Object Configs (3, 8) & (48, 2): t=19.121, p=0.000
+T-test for Object Configs (48, 2) & (12, 4): t=-8.200, p=0.000
+T-test for Object Configs (3, 8) & (12, 4): t=7.982, p=0.000
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-4.925, p=0.000
+T-test for Object Configs (12, 4) & (6, 4): t=-7.263, p=0.000
 ==================================================
 Statistical testing for Omega = 1.8
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=6.049, p=0.000
-T-test for Object Configs (48, 2) & (12, 4): t=-3.015, p=0.013
-T-test for Object Configs (3, 8) & (12, 4): t=4.483, p=0.001
+T-test for Object Configs (3, 8) & (48, 2): t=14.453, p=0.000
+T-test for Object Configs (48, 2) & (12, 4): t=-4.938, p=0.001
+T-test for Object Configs (3, 8) & (12, 4): t=8.632, p=0.000
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-5.045, p=0.000
+T-test for Object Configs (12, 4) & (6, 4): t=-8.127, p=0.000
 ==================================================
 Statistical testing for Omega = 1.85
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=3.674, p=0.005
-T-test for Object Configs (48, 2) & (12, 4): t=-5.105, p=0.000
-T-test for Object Configs (3, 8) & (12, 4): t=2.994, p=0.015
+T-test for Object Configs (3, 8) & (48, 2): t=5.374, p=0.000
+T-test for Object Configs (48, 2) & (12, 4): t=-1.332, p=0.203
+T-test for Object Configs (3, 8) & (12, 4): t=4.884, p=0.001
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-3.257, p=0.009
+T-test for Object Configs (12, 4) & (6, 4): t=-5.263, p=0.000
 ==================================================
 Statistical testing for Omega = 1.9
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=8.441, p=0.000
-T-test for Object Configs (48, 2) & (12, 4): t=-10.115, p=0.000
-T-test for Object Configs (3, 8) & (12, 4): t=3.536, p=0.005
+T-test for Object Configs (3, 8) & (48, 2): t=3.703, p=0.002
+T-test for Object Configs (48, 2) & (12, 4): t=-2.271, p=0.040
+T-test for Object Configs (3, 8) & (12, 4): t=1.008, p=0.327
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-4.350, p=0.001
+T-test for Object Configs (12, 4) & (6, 4): t=-1.844, p=0.082
 ==================================================
 Statistical testing for Omega = 1.95
 --------------------------------------------------
 Different number of objects on the grid (same surface)
-T-test for Object Configs (3, 8) & (48, 2): t=19.775, p=0.000
-T-test for Object Configs (48, 2) & (12, 4): t=-10.754, p=0.000
-T-test for Object Configs (3, 8) & (12, 4): t=9.959, p=0.000
+T-test for Object Configs (3, 8) & (48, 2): t=12.276, p=0.000
+T-test for Object Configs (48, 2) & (12, 4): t=-9.095, p=0.000
+T-test for Object Configs (3, 8) & (12, 4): t=4.179, p=0.001
 
 Different surface covered
-T-test for Object Configs (12, 4) & (6, 4): t=-9.900, p=0.000
+T-test for Object Configs (12, 4) & (6, 4): t=-3.089, p=0.007
 ==================================================

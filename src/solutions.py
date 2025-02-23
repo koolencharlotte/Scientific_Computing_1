@@ -326,11 +326,11 @@ def run_simulation_without_animation():
     return all_grids, times
 
 
-def save_grids(all_grids, times, data_file, comparison):
+def save_grids(all_grids, times, data_file):
     """
     Create pickle file containing grid snapshots and corresponding times.
     """
-    path = f"data/comparison_{data_file}" if comparison else f"data/{data_file}"
+    path = f"data/{data_file}" 
     with open(path, "wb") as f:
         pkl.dump((all_grids, times), f)
 
@@ -364,22 +364,23 @@ def check_and_parse_data(data_file, newdata, values, comp):
     )
 
     c, num_steps, N, gamma, dt = values
-    # if existing data is used for simulation, this data is chosen
 
+    # if existing data is used for simulation, this data is chosen
+    if comp:
+        data_file = f"comparison_{data_file}"
+        
     if not newdata:
         if os.path.exists(f"data/{data_file}"):
-            if comp: 
-                all_c, times = pkl.load(open(f"data/comparison_{data_file}", "rb"))
-            else:
-                all_c, times = pkl.load(open(f"data/{data_file}", "rb"))
+            all_c, times = pkl.load(open(f"data/{data_file}", "rb"))
         else:
             raise ValueError(
                 f"the data {data_file} does not exist, choose an existing file"
             )
+        
     # create new data
     else:
         all_c, times = update(c, num_steps, N, gamma, dt, comp)
-        save_grids(all_c, times, data_file, comp)
+        save_grids(all_c, times, data_file)
 
     return all_c, times
 
